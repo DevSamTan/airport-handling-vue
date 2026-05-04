@@ -115,6 +115,10 @@
   </div>
 </template>
 
+
+
+
+<!-- ########## SCRIPT ########## -->
 <script setup>
 import { ref, computed } from 'vue'
 import { AlertTriangle, CheckCircle, XCircle } from 'lucide-vue-next'

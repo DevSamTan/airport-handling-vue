@@ -13,7 +13,7 @@ export const SHIFT_TYPES = {
   INF: { label: "Infortunio", hours: "—", duration: 0, abbr: "INF" },
   PER: { label: "Permesso", hours: "—", duration: 0, abbr: "PER" },
 };
-
+//color shift
 export const SHIFT_COLORS = {
   M: "bg-blue-500/20 text-blue-300 border-l-2 border-blue-400",
   P: "bg-orange-500/20 text-orange-300 border-l-2 border-orange-400",
