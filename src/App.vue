@@ -1,14 +1,16 @@
 <template>
-  <div class="flex h-screen overflow-hidden bg-slate-900">
+  <div class="flex h-screen overflow-hidden bg-white dark:bg-slate-900">
     <!-- Sidebar -->
     <aside
       :class="[
-        'flex flex-col bg-slate-800 border-r border-slate-700 transition-all duration-300 shrink-0',
+        'flex flex-col bg-slate-50 dark:bg-slate-800 border-r border-slate-200 dark:border-slate-700 transition-all duration-300 shrink-0',
         appStore.sidebarOpen ? 'w-60' : 'w-16',
       ]"
     >
       <!-- Logo -->
-      <div class="flex items-center gap-3 px-4 py-5 border-b border-slate-700">
+      <div
+        class="flex items-center gap-3 px-4 py-5 border-b border-slate-200 dark:border-slate-700"
+      >
         <div
           class="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center text-white shrink-0"
         >
@@ -16,7 +18,7 @@
         </div>
         <span
           v-if="appStore.sidebarOpen"
-          class="font-bold text-white text-sm tracking-wide"
+          class="font-bold text-slate-900 dark:text-white text-sm tracking-wide"
           >AirOps</span
         >
       </div>
@@ -27,8 +29,8 @@
           v-for="item in navItems"
           :key="item.to"
           :to="item.to"
-          class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-700 transition-colors"
-          active-class="bg-blue-600/20 text-blue-300 hover:bg-blue-600/30 hover:text-blue-200"
+          class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"
+          active-class="bg-blue-100 dark:bg-blue-600/20 text-blue-700 dark:text-blue-300 hover:bg-blue-100 dark:hover:bg-blue-600/30 hover:text-blue-700 dark:hover:text-blue-200"
         >
           <component :is="item.icon" :size="18" class="shrink-0" />
           <span
@@ -40,12 +42,14 @@
       </nav>
 
       <!-- Role switcher -->
-      <div class="p-3 border-t border-slate-700">
+      <div class="p-3 border-t border-slate-200 dark:border-slate-700">
         <div v-if="appStore.sidebarOpen" class="mb-2">
-          <label class="text-xs text-slate-500 mb-1 block">Ruolo attivo</label>
+          <label class="text-xs text-slate-600 dark:text-slate-500 mb-1 block"
+            >Ruolo attivo</label
+          >
           <select
             v-model="appStore.currentRole"
-            class="w-full bg-slate-700 text-slate-200 text-xs px-2 py-1.5 rounded border border-slate-600 focus:outline-none focus:border-blue-500"
+            class="w-full bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-200 text-xs px-2 py-1.5 rounded border border-slate-300 dark:border-slate-600 focus:outline-none focus:border-blue-500"
           >
             <option v-for="r in roles" :key="r" :value="r">{{ r }}</option>
           </select>
@@ -57,8 +61,12 @@
             MR
           </div>
           <div v-if="appStore.sidebarOpen" class="overflow-hidden">
-            <p class="text-sm font-medium text-white truncate">Marco Rossi</p>
-            <p class="text-xs text-slate-400 truncate">
+            <p
+              class="text-sm font-medium text-slate-900 dark:text-white truncate"
+            >
+              Marco Rossi
+            </p>
+            <p class="text-xs text-slate-600 dark:text-slate-400 truncate">
               {{ appStore.currentRole }}
             </p>
           </div>
@@ -70,25 +78,39 @@
     <div class="flex-1 flex flex-col min-w-0 overflow-hidden">
       <!-- Topbar -->
       <header
-        class="h-14 bg-slate-800 border-b border-slate-700 flex items-center justify-between px-4 shrink-0"
+        class="h-14 bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 flex items-center justify-between px-4 shrink-0"
       >
         <div class="flex items-center gap-3">
           <button
             @click="appStore.toggleSidebar"
-            class="text-slate-400 hover:text-white transition-colors p-1 rounded"
+            class="text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors p-1 rounded"
           >
             <Menu :size="20" />
           </button>
-          <h1 class="text-sm font-semibold text-white">
+          <h1 class="text-sm font-semibold text-slate-900 dark:text-white">
             {{ currentPageTitle }}
           </h1>
         </div>
         <div class="flex items-center gap-2">
+          <!-- Theme toggle -->
+          <button
+            @click="themeStore.toggleTheme"
+            class="p-2 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700"
+            :title="
+              themeStore.isDark
+                ? 'Passa a modalità chiara'
+                : 'Passa a modalità scura'
+            "
+          >
+            <Sun v-if="themeStore.isDark" :size="20" />
+            <Moon v-else :size="20" />
+          </button>
+
           <!-- Notification bell -->
           <div class="relative">
             <button
               @click="showNotifications = !showNotifications"
-              class="relative p-2 text-slate-400 hover:text-white transition-colors rounded-lg hover:bg-slate-700"
+              class="relative p-2 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700"
             >
               <Bell :size="20" />
               <span
@@ -101,18 +123,21 @@
             <!-- Dropdown -->
             <div
               v-if="showNotifications"
-              class="absolute right-0 top-12 w-80 bg-slate-800 border border-slate-700 rounded-xl shadow-2xl z-50"
+              class="absolute right-0 top-12 w-80 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow-2xl z-50"
             >
               <div
-                class="flex items-center justify-between px-4 py-3 border-b border-slate-700"
+                class="flex items-center justify-between px-4 py-3 border-b border-slate-200 dark:border-slate-700"
               >
-                <span class="text-sm font-semibold text-white">Notifiche</span>
+                <span
+                  class="text-sm font-semibold text-slate-900 dark:text-white"
+                  >Notifiche</span
+                >
                 <button
                   @click="
                     appStore.markAllRead();
                     showNotifications = false;
                   "
-                  class="text-xs text-blue-400 hover:text-blue-300"
+                  class="text-xs text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300"
                 >
                   Segna tutte lette
                 </button>
@@ -122,8 +147,8 @@
                   v-for="n in appStore.notifications"
                   :key="n.id"
                   :class="[
-                    'px-4 py-3 border-b border-slate-700/50 hover:bg-slate-700/50 transition-colors',
-                    !n.read && 'bg-blue-500/5',
+                    'px-4 py-3 border-b border-slate-200 dark:border-slate-700/50 hover:bg-slate-100 dark:hover:bg-slate-700/50 transition-colors',
+                    !n.read && 'bg-blue-50 dark:bg-blue-500/5',
                   ]"
                 >
                   <div class="flex items-start gap-2">
@@ -131,10 +156,16 @@
                       <component :is="notifIcon(n.type)" :size="15" />
                     </span>
                     <div class="flex-1 min-w-0">
-                      <p class="text-xs text-slate-200 leading-snug">
+                      <p
+                        class="text-xs text-slate-700 dark:text-slate-200 leading-snug"
+                      >
                         {{ n.text }}
                       </p>
-                      <p class="text-xs text-slate-500 mt-0.5">{{ n.time }}</p>
+                      <p
+                        class="text-xs text-slate-500 dark:text-slate-500 mt-0.5"
+                      >
+                        {{ n.time }}
+                      </p>
                     </div>
                     <div
                       v-if="!n.read"
@@ -146,7 +177,9 @@
             </div>
           </div>
 
-          <div class="text-xs text-slate-400 hidden sm:block">
+          <div
+            class="text-xs text-slate-600 dark:text-slate-400 hidden sm:block"
+          >
             {{ today }}
           </div>
         </div>
@@ -178,16 +211,20 @@ import {
   Info,
   LayoutDashboard,
   Menu,
+  Moon,
   Plane,
   RefreshCw,
+  Sun,
   Thermometer,
   User,
 } from "lucide-vue-next";
 import { computed, ref } from "vue";
 import { useRoute } from "vue-router";
 import { ROLES, useAppStore } from "./stores/useAppStore";
+import { useThemeStore } from "./stores/useThemeStore";
 
 const appStore = useAppStore();
+const themeStore = useThemeStore();
 const route = useRoute();
 const showNotifications = ref(false);
 const roles = Object.values(ROLES);

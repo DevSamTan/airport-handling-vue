@@ -5,12 +5,16 @@
       <div
         v-for="kpi in kpis"
         :key="kpi.label"
-        class="bg-slate-800 rounded-xl p-4 border border-slate-700"
+        class="bg-white dark:bg-slate-800 rounded-xl p-4 border border-slate-200 dark:border-slate-700"
       >
         <div class="flex items-start justify-between">
           <div>
-            <p class="text-xs text-slate-400 mb-1">{{ kpi.label }}</p>
-            <p class="text-2xl font-bold text-white">{{ kpi.value }}</p>
+            <p class="text-xs text-slate-600 dark:text-slate-400 mb-1">
+              {{ kpi.label }}
+            </p>
+            <p class="text-2xl font-bold text-slate-900 dark:text-white">
+              {{ kpi.value }}
+            </p>
             <p
               :class="[
                 'text-xs mt-1',
@@ -30,20 +34,22 @@
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
       <!-- Coverage today -->
       <div
-        class="lg:col-span-2 bg-slate-800 rounded-xl border border-slate-700 p-5"
+        class="lg:col-span-2 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-5"
       >
-        <h2 class="text-sm font-semibold text-white mb-4">
+        <h2 class="text-sm font-semibold text-slate-900 dark:text-white mb-4">
           Copertura Operativa – Oggi
         </h2>
         <div class="space-y-3">
           <div v-for="dept in deptCoverage" :key="dept.name">
             <div
-              class="flex items-center justify-between text-xs text-slate-400 mb-1"
+              class="flex items-center justify-between text-xs text-slate-600 dark:text-slate-400 mb-1"
             >
               <span>{{ dept.name }}</span>
               <span>{{ dept.onShift }}/{{ dept.total }} operatori</span>
             </div>
-            <div class="h-2 bg-slate-700 rounded-full overflow-hidden">
+            <div
+              class="h-2 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden"
+            >
               <div
                 :class="[
                   'h-full rounded-full transition-all',
@@ -56,7 +62,9 @@
         </div>
 
         <!-- Timeline fascia oraria -->
-        <h3 class="text-xs font-semibold text-slate-400 mt-5 mb-3">
+        <h3
+          class="text-xs font-semibold text-slate-600 dark:text-slate-400 mt-5 mb-3"
+        >
           Distribuzione per Fascia
         </h3>
         <div class="flex gap-1">
@@ -74,14 +82,18 @@
             >
               {{ slot.count }}
             </div>
-            <div class="text-[9px] text-slate-500 mt-0.5">{{ slot.hour }}</div>
+            <div class="text-[9px] text-slate-500 dark:text-slate-500 mt-0.5">
+              {{ slot.hour }}
+            </div>
           </div>
         </div>
       </div>
 
       <!-- Alerts & Pending -->
-      <div class="bg-slate-800 rounded-xl border border-slate-700 p-5">
-        <h2 class="text-sm font-semibold text-white mb-4">
+      <div
+        class="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-5"
+      >
+        <h2 class="text-sm font-semibold text-slate-900 dark:text-white mb-4">
           Situazione Attuale
         </h2>
         <div class="space-y-3">
@@ -94,8 +106,12 @@
               <component :is="alert.icon" :size="16" />
             </span>
             <div>
-              <p class="text-xs font-medium text-white">{{ alert.title }}</p>
-              <p class="text-xs text-slate-400 mt-0.5">{{ alert.sub }}</p>
+              <p class="text-xs font-medium text-slate-900 dark:text-white">
+                {{ alert.title }}
+              </p>
+              <p class="text-xs text-slate-600 dark:text-slate-400 mt-0.5">
+                {{ alert.sub }}
+              </p>
             </div>
           </div>
         </div>
@@ -103,14 +119,18 @@
     </div>
 
     <!-- Weekly stats table -->
-    <div class="bg-slate-800 rounded-xl border border-slate-700 p-5">
-      <h2 class="text-sm font-semibold text-white mb-4">
+    <div
+      class="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-5"
+    >
+      <h2 class="text-sm font-semibold text-slate-900 dark:text-white mb-4">
         Riepilogo Settimana – Ore Personale
       </h2>
       <div class="overflow-x-auto">
         <table class="w-full text-xs">
           <thead>
-            <tr class="text-slate-400 border-b border-slate-700">
+            <tr
+              class="text-slate-600 dark:text-slate-400 border-b border-slate-200 dark:border-slate-700"
+            >
               <th class="text-left py-2 pr-4 font-medium">Dipendente</th>
               <th class="text-left py-2 pr-4 font-medium">Reparto</th>
               <th class="text-right py-2 pr-4 font-medium">Target/sett</th>
@@ -123,7 +143,7 @@
             <tr
               v-for="row in weekSummary"
               :key="row.id"
-              class="border-b border-slate-700/50 hover:bg-slate-700/30 transition-colors"
+              class="border-b border-slate-200 dark:border-slate-700/50 hover:bg-slate-100 dark:hover:bg-slate-700/30 transition-colors"
             >
               <td class="py-2.5 pr-4">
                 <div class="flex items-center gap-2">
@@ -132,14 +152,22 @@
                   >
                     {{ row.initials }}
                   </div>
-                  <span class="text-white font-medium">{{ row.name }}</span>
+                  <span class="text-slate-900 dark:text-white font-medium">{{
+                    row.name
+                  }}</span>
                 </div>
               </td>
-              <td class="py-2.5 pr-4 text-slate-400">{{ row.dept }}</td>
-              <td class="py-2.5 pr-4 text-right text-slate-300">
+              <td class="py-2.5 pr-4 text-slate-600 dark:text-slate-400">
+                {{ row.dept }}
+              </td>
+              <td
+                class="py-2.5 pr-4 text-right text-slate-700 dark:text-slate-300"
+              >
                 {{ row.target }}h
               </td>
-              <td class="py-2.5 pr-4 text-right font-mono text-white">
+              <td
+                class="py-2.5 pr-4 text-right font-mono text-slate-900 dark:text-white"
+              >
                 {{ row.worked }}h
               </td>
               <td
@@ -169,11 +197,11 @@
 
 <script setup>
 import {
-  AlertTriangle,
-  ArrowLeftRight,
-  Clock,
-  Thermometer,
-  Users,
+    AlertTriangle,
+    ArrowLeftRight,
+    Clock,
+    Thermometer,
+    Users,
 } from "lucide-vue-next";
 import { computed } from "vue";
 import { useRequestStore } from "../stores/useRequestStore";

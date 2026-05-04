@@ -5,16 +5,16 @@
       <div class="flex items-center gap-2">
         <button
           @click="prevWeek"
-          class="flex items-center gap-1.5 px-3 py-1.5 bg-slate-700 hover:bg-slate-600 text-white text-sm rounded-lg transition-colors"
+          class="flex items-center gap-1.5 px-3 py-1.5 dark:bg-slate-700 bg-gray-200 dark:hover:bg-slate-600 hover:bg-gray-300 dark:text-white text-black text-sm rounded-lg transition-colors"
         >
           <ChevronLeft :size="16" /> Prec.
         </button>
-        <span class="text-sm font-semibold text-white px-2">{{
+        <span class="text-sm font-semibold dark:text-white text-black px-2">{{
           weekLabel
         }}</span>
         <button
           @click="nextWeek"
-          class="flex items-center gap-1.5 px-3 py-1.5 bg-slate-700 hover:bg-slate-600 text-white text-sm rounded-lg transition-colors"
+          class="flex items-center gap-1.5 px-3 py-1.5 dark:bg-slate-700 bg-gray-200 dark:hover:bg-slate-600 hover:bg-gray-300 dark:text-white text-black text-sm rounded-lg transition-colors"
         >
           Succ. <ChevronRight :size="16" />
         </button>
@@ -52,7 +52,7 @@
 
         <select
           v-model="deptFilter"
-          class="bg-slate-700 text-slate-200 text-xs px-3 py-1.5 rounded-lg border border-slate-600 focus:outline-none focus:border-blue-500"
+          class="dark:bg-slate-700 bg-gray-200 dark:text-slate-200 text-gray-800 text-xs px-3 py-1.5 rounded-lg dark:border-slate-600 border-gray-400 focus:outline-none focus:border-blue-500"
         >
           <option value="">Tutti i reparti</option>
           <option v-for="d in departments" :key="d" :value="d">{{ d }}</option>
@@ -84,14 +84,16 @@
 
     <!-- Grid -->
     <div
-      class="bg-slate-800 rounded-xl border border-slate-700 overflow-hidden"
+      class="dark:bg-slate-800 bg-white rounded-xl dark:border-slate-700 border-gray-300 overflow-hidden"
     >
       <div class="overflow-x-auto">
         <table class="w-full min-w-[900px] border-collapse text-xs">
           <thead>
-            <tr class="bg-slate-900/60 text-slate-400">
+            <tr
+              class="dark:bg-slate-900/60 bg-gray-100 dark:text-slate-400 text-gray-600"
+            >
               <th
-                class="text-left px-4 py-3 font-medium w-40 border-r border-slate-700"
+                class="text-left px-4 py-3 font-medium w-40 dark:border-r border-r dark:border-slate-700 border-gray-300"
               >
                 Operatore
               </th>
@@ -432,23 +434,23 @@
 
 <script setup>
 import {
-  ChevronLeft,
-  ChevronRight,
-  Clipboard,
-  ClipboardPaste,
-  Copy,
-  MousePointerClick,
-  Pencil,
-  Plus,
-  Trash2,
-  X,
+    ChevronLeft,
+    ChevronRight,
+    Clipboard,
+    ClipboardPaste,
+    Copy,
+    MousePointerClick,
+    Pencil,
+    Plus,
+    Trash2,
+    X,
 } from "lucide-vue-next";
 import { computed, reactive, ref } from "vue";
 import {
-  DEPARTMENTS,
-  SHIFT_COLORS,
-  SHIFT_TYPES,
-  useShiftStore,
+    DEPARTMENTS,
+    SHIFT_COLORS,
+    SHIFT_TYPES,
+    useShiftStore,
 } from "../stores/useShiftStore";
 
 const shiftStore = useShiftStore();
