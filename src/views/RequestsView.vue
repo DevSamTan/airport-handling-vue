@@ -1,7 +1,7 @@
 <template>
   <div class="p-6 space-y-6">
     <!-- Tabs -->
-    <div class="flex gap-1 bg-slate-100 dark:bg-slate-800 p-1 rounded-xl border border-slate-200 dark:border-slate-700 w-fit">
+    <div class="flex gap-1 bg-slate-100 dark:bg-slate-800 p-1 rounded-xl border border-slate-200 dark:border-slate-700 w-fit flex-wrap">
       <button
         v-for="tab in tabs"
         :key="tab.key"
@@ -13,7 +13,7 @@
       </button>
     </div>
 
-    <!-- Shift swaps -->
+    <!-- ── CAMBI TURNO ───────────────────────────────────────────────── -->
     <div v-if="activeTab === 'swaps'" class="space-y-3">
       <div class="flex items-center justify-between">
         <h2 class="text-sm font-semibold text-slate-900 dark:text-white">Richieste Cambio Turno</h2>
@@ -59,21 +59,13 @@
             </div>
           </div>
 
-          <div v-if="req.reason" class="mt-2 text-xs text-slate-500 dark:text-slate-400 italic">
-            "{{ req.reason }}"
-          </div>
+          <div v-if="req.reason" class="mt-2 text-xs text-slate-500 dark:text-slate-400 italic">"{{ req.reason }}"</div>
 
           <div v-if="req.status === 'pending'" class="mt-3 flex gap-2">
-            <button
-              @click="reqStore.rejectSwap(req.id)"
-              class="flex items-center gap-1.5 px-3 py-1.5 text-xs text-red-600 dark:text-red-400 border border-red-500/40 hover:bg-red-500/10 rounded-lg transition-colors"
-            >
+            <button @click="reqStore.rejectSwap(req.id)" class="flex items-center gap-1.5 px-3 py-1.5 text-xs text-red-600 dark:text-red-400 border border-red-500/40 hover:bg-red-500/10 rounded-lg transition-colors">
               <XCircle :size="13" /> Rifiuta
             </button>
-            <button
-              @click="reqStore.approveSwap(req.id)"
-              class="flex items-center gap-1.5 px-3 py-1.5 text-xs text-emerald-600 dark:text-emerald-400 border border-emerald-500/40 hover:bg-emerald-500/10 rounded-lg transition-colors"
-            >
+            <button @click="reqStore.approveSwap(req.id)" class="flex items-center gap-1.5 px-3 py-1.5 text-xs text-emerald-600 dark:text-emerald-400 border border-emerald-500/40 hover:bg-emerald-500/10 rounded-lg transition-colors">
               <CheckCircle :size="13" /> Approva
             </button>
           </div>
@@ -83,7 +75,7 @@
       </div>
     </div>
 
-    <!-- Sick leaves -->
+    <!-- ── MALATTIE ──────────────────────────────────────────────────── -->
     <div v-if="activeTab === 'sick'" class="space-y-3">
       <div class="flex items-center justify-between">
         <h2 class="text-sm font-semibold text-slate-900 dark:text-white">Malattie / Infortuni</h2>
@@ -113,9 +105,14 @@
                 </div>
               </div>
             </div>
-            <span :class="['text-xs font-medium px-2 py-0.5 rounded-full shrink-0', sick.status === 'cert_pending' ? 'bg-orange-500/20 text-orange-600 dark:text-orange-300' : 'bg-blue-500/20 text-blue-600 dark:text-blue-300']">
-              {{ sick.status === 'cert_pending' ? 'Cert. atteso' : 'Cert. ricevuto' }}
-            </span>
+            <div class="flex flex-col items-end gap-1 shrink-0">
+              <span :class="['text-xs font-medium px-2 py-0.5 rounded-full', sick.status === 'cert_pending' ? 'bg-orange-500/20 text-orange-600 dark:text-orange-300' : 'bg-blue-500/20 text-blue-600 dark:text-blue-300']">
+                {{ sick.status === 'cert_pending' ? 'Cert. atteso' : 'Cert. ricevuto' }}
+              </span>
+              <span v-if="sick.hrSentAt" class="text-[10px] text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
+                <Send :size="10" /> Inviato a HR {{ sick.hrSentAt }}
+              </span>
+            </div>
           </div>
 
           <div class="mt-3 grid grid-cols-2 gap-3 text-xs">
@@ -131,12 +128,34 @@
 
           <div v-if="sick.note" class="mt-2 text-xs text-slate-500 dark:text-slate-400 italic">"{{ sick.note }}"</div>
 
-          <div v-if="sick.status === 'cert_pending'" class="mt-3">
+          <!-- Protocol number row -->
+          <div class="mt-3 flex items-center gap-2">
+            <label class="text-xs text-slate-500 dark:text-slate-400 shrink-0">N° protocollo:</label>
+            <input
+              :value="sick.protocolNumber || ''"
+              @change="reqStore.setSickProtocol(sick.id, $event.target.value || null)"
+              placeholder="es. MAL-2026-0042"
+              class="flex-1 bg-slate-50 dark:bg-slate-700/60 border border-slate-200 dark:border-slate-600 text-slate-900 dark:text-white text-xs px-2 py-1 rounded-lg focus:outline-none focus:border-blue-500"
+            />
+          </div>
+
+          <!-- Actions -->
+          <div class="mt-3 flex flex-wrap gap-2">
             <button
+              v-if="sick.status === 'cert_pending'"
               @click="reqStore.updateSickStatus(sick.id, 'cert_received')"
               class="flex items-center gap-1.5 px-3 py-1.5 text-xs text-blue-600 dark:text-blue-400 border border-blue-500/40 hover:bg-blue-500/10 rounded-lg transition-colors"
             >
               <CheckCircle :size="13" /> Segna certificato ricevuto
+            </button>
+            <button
+              v-if="!sick.hrSentAt"
+              @click="reqStore.sendSickToHR(sick.id)"
+              :disabled="!sick.protocolNumber"
+              :title="!sick.protocolNumber ? 'Inserisci il numero di protocollo prima' : 'Invia comunicazione a HR'"
+              class="flex items-center gap-1.5 px-3 py-1.5 text-xs text-emerald-600 dark:text-emerald-400 border border-emerald-500/40 hover:bg-emerald-500/10 rounded-lg transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+            >
+              <Send :size="13" /> Invia a HR
             </button>
           </div>
         </div>
@@ -144,40 +163,105 @@
         <p v-if="filteredSick.length === 0" class="text-slate-400 dark:text-slate-500 text-sm text-center py-8">Nessuna assenza trovata</p>
       </div>
     </div>
+
+    <!-- ── FERIE ──────────────────────────────────────────────────────── -->
+    <div v-if="activeTab === 'vacations'" class="space-y-3">
+      <div class="flex items-center justify-between">
+        <h2 class="text-sm font-semibold text-slate-900 dark:text-white">Richieste Ferie</h2>
+        <select v-model="vacFilter" class="bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-200 text-xs px-3 py-1.5 rounded-lg border border-slate-300 dark:border-slate-600 focus:outline-none">
+          <option value="">Tutti gli stati</option>
+          <option value="pending">In attesa</option>
+          <option value="approved">Approvate</option>
+          <option value="rejected">Rifiutate</option>
+        </select>
+      </div>
+
+      <div class="space-y-3">
+        <div
+          v-for="vac in filteredVacations"
+          :key="vac.id"
+          class="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-4"
+        >
+          <div class="flex items-start justify-between gap-4">
+            <div class="flex items-center gap-3">
+              <div class="w-9 h-9 rounded-full bg-emerald-600 flex items-center justify-center text-sm font-bold text-white shrink-0">
+                {{ initials(vac.employee) }}
+              </div>
+              <div>
+                <p class="text-sm font-semibold text-slate-900 dark:text-white">{{ vac.employee }}</p>
+                <p class="text-xs text-slate-500 dark:text-slate-400">{{ vac.createdAt }}</p>
+              </div>
+            </div>
+            <span :class="['text-xs font-medium px-2 py-0.5 rounded-full shrink-0', statusClass(vac.status)]">{{ statusLabel(vac.status) }}</span>
+          </div>
+
+          <div class="mt-3 grid grid-cols-3 gap-3 text-xs">
+            <div class="bg-slate-50 dark:bg-slate-700/40 rounded-lg p-2.5">
+              <p class="text-slate-500 dark:text-slate-400 mb-0.5">Dal</p>
+              <p class="font-medium text-slate-900 dark:text-white font-mono">{{ vac.startDate }}</p>
+            </div>
+            <div class="bg-slate-50 dark:bg-slate-700/40 rounded-lg p-2.5">
+              <p class="text-slate-500 dark:text-slate-400 mb-0.5">Al</p>
+              <p class="font-medium text-slate-900 dark:text-white font-mono">{{ vac.endDate }}</p>
+            </div>
+            <div class="bg-slate-50 dark:bg-slate-700/40 rounded-lg p-2.5">
+              <p class="text-slate-500 dark:text-slate-400 mb-0.5">Giorni</p>
+              <p class="font-medium text-slate-900 dark:text-white">{{ daysBetween(vac.startDate, vac.endDate) }}gg</p>
+            </div>
+          </div>
+
+          <div v-if="vac.reason" class="mt-2 text-xs text-slate-500 dark:text-slate-400 italic">"{{ vac.reason }}"</div>
+
+          <div v-if="vac.status === 'pending'" class="mt-3 flex gap-2">
+            <button @click="reqStore.rejectVacation(vac.id)" class="flex items-center gap-1.5 px-3 py-1.5 text-xs text-red-600 dark:text-red-400 border border-red-500/40 hover:bg-red-500/10 rounded-lg transition-colors">
+              <XCircle :size="13" /> Rifiuta
+            </button>
+            <button @click="reqStore.approveVacation(vac.id)" class="flex items-center gap-1.5 px-3 py-1.5 text-xs text-emerald-600 dark:text-emerald-400 border border-emerald-500/40 hover:bg-emerald-500/10 rounded-lg transition-colors">
+              <CheckCircle :size="13" /> Approva
+            </button>
+          </div>
+        </div>
+
+        <p v-if="filteredVacations.length === 0" class="text-slate-400 dark:text-slate-500 text-sm text-center py-8">Nessuna richiesta ferie trovata</p>
+      </div>
+    </div>
   </div>
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
-import { XCircle, CheckCircle, Thermometer, Bandage } from 'lucide-vue-next'
+import { computed, ref } from 'vue'
+import { Bandage, CheckCircle, Send, Thermometer, XCircle } from 'lucide-vue-next'
 import { useRequestStore } from '../stores/useRequestStore'
 
 const reqStore = useRequestStore()
-const activeTab = ref('swaps')
+const activeTab  = ref('swaps')
 const swapFilter = ref('')
 const sickFilter = ref('')
+const vacFilter  = ref('')
 
 const tabs = computed(() => [
-  { key: 'swaps', label: 'Cambi Turno',          badge: reqStore.pendingSwaps.length || null },
-  { key: 'sick',  label: 'Malattie / Infortuni', badge: reqStore.pendingSick.length  || null },
+  { key: 'swaps',     label: 'Cambi Turno',          badge: reqStore.pendingSwaps.length     || null },
+  { key: 'sick',      label: 'Malattie / Infortuni', badge: reqStore.pendingSick.length      || null },
+  { key: 'vacations', label: 'Ferie',                badge: reqStore.pendingVacations.length || null },
 ])
 
 const filteredSwaps = computed(() =>
-  swapFilter.value
-    ? reqStore.shiftSwaps.filter(r => r.status === swapFilter.value)
-    : reqStore.shiftSwaps
+  swapFilter.value ? reqStore.shiftSwaps.filter(r => r.status === swapFilter.value) : reqStore.shiftSwaps
 )
-
 const filteredSick = computed(() =>
-  sickFilter.value
-    ? reqStore.sickLeaves.filter(r => r.status === sickFilter.value)
-    : reqStore.sickLeaves
+  sickFilter.value ? reqStore.sickLeaves.filter(r => r.status === sickFilter.value) : reqStore.sickLeaves
+)
+const filteredVacations = computed(() =>
+  vacFilter.value ? reqStore.vacationRequests.filter(r => r.status === vacFilter.value) : reqStore.vacationRequests
 )
 
 function initials(name) {
   return name?.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase() || '?'
 }
-
+function daysBetween(d1, d2) {
+  if (!d1 || !d2) return 1
+  return Math.max(1, Math.round((new Date(d2) - new Date(d1)) / 86400000) + 1)
+}
 function statusLabel(s) {
   return { pending: 'In attesa', approved: 'Approvato', rejected: 'Rifiutato' }[s] || s
 }
