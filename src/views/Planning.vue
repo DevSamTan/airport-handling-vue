@@ -57,6 +57,20 @@
           <option value="">Tutti i reparti</option>
           <option v-for="d in departments" :key="d" :value="d">{{ d }}</option>
         </select>
+
+        <button
+          @click="triggerCsvImport"
+          class="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white text-xs rounded-lg transition-colors font-medium"
+        >
+          <Upload :size="14" /> Importa CSV
+        </button>
+        <input
+          ref="csvInput"
+          type="file"
+          accept=".csv,.txt"
+          class="hidden"
+          @change="handleCsvFile"
+        />
       </div>
     </div>
 
@@ -350,6 +364,92 @@
       ></div>
     </Teleport>
 
+    <!-- CSV Import Preview Modal -->
+    <div
+      v-if="importPreview.open"
+      class="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4"
+      @click.self="importPreview.open = false"
+    >
+      <div
+        class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 w-full max-w-lg shadow-2xl"
+      >
+        <div
+          class="px-6 py-4 border-b border-slate-100 dark:border-slate-700 flex items-center justify-between"
+        >
+          <h3 class="text-sm font-semibold text-slate-900 dark:text-white flex items-center gap-2">
+            <Upload :size="16" class="text-emerald-500" /> Anteprima Importazione CSV
+          </h3>
+          <button @click="importPreview.open = false" class="text-slate-400 hover:text-slate-700 dark:hover:text-white">
+            <X :size="20" />
+          </button>
+        </div>
+
+        <div class="px-6 py-4 space-y-4">
+          <!-- Start date picker -->
+          <div>
+            <label class="text-xs text-slate-500 dark:text-slate-400 block mb-1">Data di inizio (prima colonna del CSV)</label>
+            <input
+              type="date"
+              v-model="importPreview.startDate"
+              @change="refreshPreview"
+              class="bg-white dark:bg-slate-700 border border-slate-300 dark:border-slate-600 text-slate-900 dark:text-white text-xs px-3 py-1.5 rounded-lg focus:outline-none focus:border-blue-500"
+            />
+          </div>
+
+          <!-- Stats -->
+          <div class="grid grid-cols-3 gap-3">
+            <div class="bg-slate-50 dark:bg-slate-700/40 rounded-xl p-3 text-center">
+              <p class="text-slate-500 dark:text-slate-400 text-[10px] mb-1">Operatori</p>
+              <p class="text-xl font-bold text-slate-900 dark:text-white">{{ importPreview.rows.length }}</p>
+            </div>
+            <div class="bg-slate-50 dark:bg-slate-700/40 rounded-xl p-3 text-center">
+              <p class="text-slate-500 dark:text-slate-400 text-[10px] mb-1">Turni totali</p>
+              <p class="text-xl font-bold text-emerald-600 dark:text-emerald-400">{{ importPreview.totalShifts }}</p>
+            </div>
+            <div class="bg-slate-50 dark:bg-slate-700/40 rounded-xl p-3 text-center">
+              <p class="text-slate-500 dark:text-slate-400 text-[10px] mb-1">Periodo</p>
+              <p class="text-[10px] font-semibold text-slate-700 dark:text-slate-300 leading-tight mt-1">{{ importPreview.dateRange }}</p>
+            </div>
+          </div>
+
+          <!-- Employee list -->
+          <div v-if="importPreview.rows.length">
+            <p class="text-xs text-slate-500 dark:text-slate-400 mb-2">Operatori trovati:</p>
+            <div class="max-h-48 overflow-y-auto space-y-1 pr-1">
+              <div
+                v-for="row in importPreview.rows"
+                :key="row.name"
+                class="flex items-center justify-between px-3 py-1.5 bg-slate-50 dark:bg-slate-700/40 rounded-lg"
+              >
+                <span class="text-xs text-slate-900 dark:text-white font-medium">{{ row.name }}</span>
+                <span class="text-[10px] text-slate-500 dark:text-slate-400 font-mono">{{ Object.keys(row.shifts).length }} turni</span>
+              </div>
+            </div>
+          </div>
+
+          <div v-else class="text-center py-4 text-xs text-slate-400 dark:text-slate-500">
+            Nessun operatore rilevato. Controlla la data di inizio o il formato del file.
+          </div>
+        </div>
+
+        <div class="px-6 py-4 border-t border-slate-100 dark:border-slate-700 flex gap-2 justify-end">
+          <button
+            @click="importPreview.open = false"
+            class="px-4 py-2 text-sm text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition-colors"
+          >
+            Annulla
+          </button>
+          <button
+            @click="confirmImport"
+            :disabled="!importPreview.rows.length"
+            class="px-4 py-2 text-sm bg-emerald-600 hover:bg-emerald-500 disabled:opacity-40 disabled:cursor-not-allowed text-white rounded-lg transition-colors font-medium flex items-center gap-1.5"
+          >
+            <Upload :size="14" /> Importa {{ importPreview.rows.length }} operatori
+          </button>
+        </div>
+      </div>
+    </div>
+
     <!-- Modal shift assignment -->
     <div
       v-if="modal.open"
@@ -443,6 +543,7 @@ import {
     Pencil,
     Plus,
     Trash2,
+    Upload,
     X,
 } from "lucide-vue-next";
 import { computed, reactive, ref } from "vue";
@@ -623,6 +724,154 @@ function saveShift() {
 function removeShift() {
   shiftStore.setShift(modal.staff.id, modal.date, null);
   modal.open = false;
+}
+
+// ── CSV Import ─────────────────────────────────────────────────────────────
+const csvInput = ref(null);
+
+const importPreview = reactive({
+  open: false,
+  startDate: "2026-05-01",
+  rows: [],
+  totalShifts: 0,
+  dateRange: "",
+  rawText: "",
+});
+
+function decodeShiftCode(code) {
+  if (!code) return null;
+  const c = code.trim().toUpperCase().replace(/\s+/g, "");
+  if (!c || c === "-") return null;
+  if (c === "R1" || c === "R2" || c === "R") return "R";
+  if (c === "FER") return "F";
+  if (c === "FS" || c === "CSO") return "PER";
+  if (c === "MAL") return "MAL";
+  if (c === "INF") return "INF";
+  // Numeric codes: H32, F12, E38 → parseInt(digits) / 2 = start hour
+  const match = c.match(/^[HFE](\d+)$/);
+  if (match) {
+    const hour = parseInt(match[1]) / 2;
+    if (hour >= 22 || hour < 5) return "N";
+    if (hour >= 14) return "P";
+    return "M";
+  }
+  // Already a known shift key
+  if (["M", "P", "N", "L", "S6", "F", "MAL", "INF", "PER"].includes(c))
+    return c;
+  return null;
+}
+
+function parseCsvShifts(text, startDateStr) {
+  // Try semicolon first, fallback to comma
+  const sep = text.includes(";") ? ";" : ",";
+  const lines = text
+    .split(/\r?\n/)
+    .map((l) => l.trim())
+    .filter((l) => l);
+
+  // Locate header row: the row with the most numeric day values (1-31)
+  let headerIdx = -1;
+  let dayColIndices = [];
+
+  for (let i = 0; i < lines.length; i++) {
+    const cols = lines[i].split(sep).map((c) => c.trim().replace(/"/g, ""));
+    const indices = [];
+    for (let j = 0; j < cols.length; j++) {
+      const n = parseInt(cols[j]);
+      if (/^\d+$/.test(cols[j]) && n >= 1 && n <= 31) indices.push(j);
+    }
+    if (indices.length > dayColIndices.length) {
+      dayColIndices = indices;
+      headerIdx = i;
+    }
+  }
+
+  if (headerIdx === -1 || dayColIndices.length === 0) return [];
+
+  const startDate = new Date(startDateStr);
+  const rows = [];
+
+  for (let i = headerIdx + 1; i < lines.length; i++) {
+    const cols = lines[i].split(sep).map((c) => c.trim().replace(/"/g, ""));
+    const rawName = cols[0] || "";
+    // Skip empty, purely numeric, or summary rows
+    if (
+      !rawName ||
+      /^\d+$/.test(rawName) ||
+      /totale|reparto|tot\b/i.test(rawName)
+    )
+      continue;
+
+    const shifts = {};
+    dayColIndices.forEach((colIdx, dayOffset) => {
+      const shiftType = decodeShiftCode(cols[colIdx]);
+      if (shiftType) {
+        const d = new Date(startDate);
+        d.setDate(d.getDate() + dayOffset);
+        shifts[d.toISOString().slice(0, 10)] = shiftType;
+      }
+    });
+
+    if (Object.keys(shifts).length > 0) {
+      rows.push({ name: rawName, shifts });
+    }
+  }
+
+  return rows;
+}
+
+function refreshPreview() {
+  importPreview.rows = parseCsvShifts(importPreview.rawText, importPreview.startDate);
+  importPreview.totalShifts = importPreview.rows.reduce(
+    (sum, r) => sum + Object.keys(r.shifts).length,
+    0,
+  );
+  const allDates = importPreview.rows.flatMap((r) => Object.keys(r.shifts));
+  if (allDates.length) {
+    const sorted = allDates.sort();
+    const fmt = (s) =>
+      new Date(s).toLocaleDateString("it-IT", {
+        day: "numeric",
+        month: "short",
+        year: "numeric",
+      });
+    importPreview.dateRange = `${fmt(sorted[0])} – ${fmt(sorted[sorted.length - 1])}`;
+  } else {
+    importPreview.dateRange = "—";
+  }
+}
+
+function triggerCsvImport() {
+  csvInput.value?.click();
+}
+
+function handleCsvFile(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  // Infer start date from filename like "05_RAMP_MAGGIO_26.csv"
+  const fnMonth = file.name.match(/^(\d{2})_/);
+  if (fnMonth) {
+    importPreview.startDate = `2026-${fnMonth[1]}-01`;
+  }
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    importPreview.rawText = e.target.result;
+    refreshPreview();
+    importPreview.open = true;
+  };
+  // Italian CSVs are often ISO-8859-1; try latin1 first
+  reader.readAsText(file, "ISO-8859-1");
+  event.target.value = "";
+}
+
+function confirmImport() {
+  shiftStore.importFromCsv(importPreview.rows);
+  // Jump to the first imported week
+  const allDates = importPreview.rows.flatMap((r) => Object.keys(r.shifts));
+  if (allDates.length) {
+    currentWeekStart.value = getMonday(new Date(allDates.sort()[0]));
+  }
+  importPreview.open = false;
 }
 </script>
 

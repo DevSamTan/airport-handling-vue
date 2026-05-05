@@ -1,5 +1,5 @@
 import { defineStore } from "pinia";
-import { computed, ref } from "vue";
+import { computed, ref, watch } from "vue";
 
 export const SHIFT_TYPES = {
   M: { label: "Mattina", hours: "06:00–14:00", duration: 8, abbr: "MAT" },
@@ -13,6 +13,7 @@ export const SHIFT_TYPES = {
   INF: { label: "Infortunio", hours: "—", duration: 0, abbr: "INF" },
   PER: { label: "Permesso", hours: "—", duration: 0, abbr: "PER" },
 };
+
 //color shift
 export const SHIFT_COLORS = {
   M: "bg-blue-500/20 text-blue-300 border-l-2 border-blue-400",
@@ -29,92 +30,42 @@ export const SHIFT_COLORS = {
 
 export const DEPARTMENTS = ["Rampa", "Magazzino", "Coordinatori", "GSE"];
 
-export const useShiftStore = defineStore("shifts", () => {
-  const staff = ref([
-    {
-      id: 1,
-      name: "Marco Rossi",
-      initials: "MR",
-      role: "Op. Rampa",
-      dept: "Rampa",
-      contract: "Full-time",
-      contractHours: 40,
-      monthlyTarget: 160,
-    },
-    {
-      id: 2,
-      name: "Laura Bianchi",
-      initials: "LB",
-      role: "Op. Magazzino",
-      dept: "Magazzino",
-      contract: "Part-time",
-      contractHours: 30,
-      monthlyTarget: 120,
-    },
-    {
-      id: 3,
-      name: "Giuseppe Verdi",
-      initials: "GV",
-      role: "Team Leader",
-      dept: "Rampa",
-      contract: "Full-time",
-      contractHours: 40,
-      monthlyTarget: 160,
-    },
-    {
-      id: 4,
-      name: "Anna Ferrari",
-      initials: "AF",
-      role: "Coordinatrice",
-      dept: "Coordinatori",
-      contract: "Full-time",
-      contractHours: 40,
-      monthlyTarget: 160,
-    },
-    {
-      id: 5,
-      name: "Carlo Esposito",
-      initials: "CE",
-      role: "GSE Tecnico",
-      dept: "GSE",
-      contract: "Full-time",
-      contractHours: 40,
-      monthlyTarget: 160,
-    },
-    {
-      id: 6,
-      name: "Sofia Marino",
-      initials: "SM",
-      role: "Op. Rampa",
-      dept: "Rampa",
-      contract: "Part-time",
-      contractHours: 24,
-      monthlyTarget: 96,
-    },
-    {
-      id: 7,
-      name: "Luca Romano",
-      initials: "LR",
-      role: "Op. Magazzino",
-      dept: "Magazzino",
-      contract: "Full-time",
-      contractHours: 40,
-      monthlyTarget: 160,
-    },
-    {
-      id: 8,
-      name: "Elena Costa",
-      initials: "EC",
-      role: "Op. Rampa",
-      dept: "Rampa",
-      contract: "Full-time",
-      contractHours: 40,
-      monthlyTarget: 160,
-    },
-  ]);
+const DEFAULT_STAFF = [
+  { id: 1, name: "Marco Rossi",     initials: "MR", role: "Op. Rampa",      dept: "Rampa",         contract: "Full-time",  contractHours: 40, monthlyTarget: 160 },
+  { id: 2, name: "Laura Bianchi",   initials: "LB", role: "Op. Magazzino",  dept: "Magazzino",     contract: "Part-time",  contractHours: 30, monthlyTarget: 120 },
+  { id: 3, name: "Giuseppe Verdi",  initials: "GV", role: "Team Leader",    dept: "Rampa",         contract: "Full-time",  contractHours: 40, monthlyTarget: 160 },
+  { id: 4, name: "Anna Ferrari",    initials: "AF", role: "Coordinatrice",  dept: "Coordinatori",  contract: "Full-time",  contractHours: 40, monthlyTarget: 160 },
+  { id: 5, name: "Carlo Esposito",  initials: "CE", role: "GSE Tecnico",    dept: "GSE",           contract: "Full-time",  contractHours: 40, monthlyTarget: 160 },
+  { id: 6, name: "Sofia Marino",    initials: "SM", role: "Op. Rampa",      dept: "Rampa",         contract: "Part-time",  contractHours: 24, monthlyTarget: 96  },
+  { id: 7, name: "Luca Romano",     initials: "LR", role: "Op. Magazzino",  dept: "Magazzino",     contract: "Full-time",  contractHours: 40, monthlyTarget: 160 },
+  { id: 8, name: "Elena Costa",     initials: "EC", role: "Op. Rampa",      dept: "Rampa",         contract: "Full-time",  contractHours: 40, monthlyTarget: 160 },
+];
 
-  // shifts keyed as "staffId_YYYY-MM-DD"
-  const shifts = ref({});
+function loadJson(key) {
+  try {
+    const raw = localStorage.getItem(key);
+    return raw ? JSON.parse(raw) : null;
+  } catch {
+    return null;
+  }
+}
+
+function saveJson(key, value) {
+  try {
+    localStorage.setItem(key, JSON.stringify(value));
+  } catch {}
+}
+
+export const useShiftStore = defineStore("shifts", () => {
+  const savedStaff  = loadJson("airops_staff");
+  const savedShifts = loadJson("airops_shifts");
+
+  const staff  = ref(savedStaff  ?? DEFAULT_STAFF.map((s) => ({ ...s })));
+  const shifts = ref(savedShifts ?? {});
+
+  // Persist on every change
+  watch(staff,  (v) => saveJson("airops_staff",  v), { deep: true });
+  watch(shifts, (v) => saveJson("airops_shifts", v), { deep: true });
 
   function _key(staffId, date) {
     const d = date instanceof Date ? date : new Date(date);
@@ -157,7 +108,9 @@ export const useShiftStore = defineStore("shifts", () => {
       });
     });
   }
-  _seed();
+
+  // Only seed on first run (no saved data in localStorage)
+  if (!savedShifts) _seed();
 
   function getShift(staffId, date) {
     return shifts.value[_key(staffId, date)] || null;
@@ -195,6 +148,42 @@ export const useShiftStore = defineStore("shifts", () => {
 
   const currentStaff = computed(() => staff.value.find((s) => s.id === 1));
 
+  // ── CSV import ────────────────────────────────────────────────────────────
+  function importFromCsv(parsedRows) {
+    // parsedRows: [{name, shifts: {'2026-05-01': 'M', ...}}, ...]
+    let nextId = Math.max(...staff.value.map((s) => s.id)) + 1;
+
+    for (const row of parsedRows) {
+      let member = staff.value.find(
+        (s) => s.name.toLowerCase() === row.name.toLowerCase(),
+      );
+
+      if (!member) {
+        const parts = row.name.split(" ");
+        const initials = parts
+          .map((p) => p[0] || "")
+          .join("")
+          .slice(0, 2)
+          .toUpperCase();
+        member = {
+          id: nextId++,
+          name: row.name,
+          initials,
+          role: "Op. Rampa",
+          dept: "Rampa",
+          contract: "Full-time",
+          contractHours: 40,
+          monthlyTarget: 160,
+        };
+        staff.value.push(member);
+      }
+
+      for (const [dateStr, shiftType] of Object.entries(row.shifts)) {
+        setShift(member.id, dateStr, shiftType);
+      }
+    }
+  }
+
   return {
     staff,
     shifts,
@@ -203,5 +192,6 @@ export const useShiftStore = defineStore("shifts", () => {
     weeklyHours,
     monthlyHours,
     currentStaff,
+    importFromCsv,
   };
 });
