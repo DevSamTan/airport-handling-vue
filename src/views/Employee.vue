@@ -10,13 +10,12 @@
           {{ SHIFT_TYPES[todayShift].hours }}
         </h2>
         <div class="mt-3 flex flex-wrap items-center gap-2">
-          <span
-            class="bg-blue-500/50 px-3 py-1 rounded-full text-sm font-medium"
-            >{{ SHIFT_TYPES[todayShift].label }}</span
-          >
-          <span class="bg-white/20 px-3 py-1 rounded-full text-sm"
-            >{{ SHIFT_TYPES[todayShift].duration }}h – Full-time 40h/sett</span
-          >
+          <span class="bg-blue-500/50 px-3 py-1 rounded-full text-sm font-medium">
+            {{ SHIFT_TYPES[todayShift].label }}
+          </span>
+          <span class="bg-white/20 px-3 py-1 rounded-full text-sm">
+            {{ SHIFT_TYPES[todayShift].duration }}h – Full-time 40h/sett
+          </span>
         </div>
       </template>
       <template v-else>
@@ -29,40 +28,36 @@
     <div class="grid grid-cols-2 gap-3">
       <button
         @click="swapModal = true"
-        class="flex flex-col items-center gap-2 p-4 bg-slate-800 rounded-xl border border-slate-700 hover:border-blue-500 hover:bg-slate-700 transition-all"
+        class="flex flex-col items-center gap-2 p-4 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 hover:border-blue-400 dark:hover:border-blue-500 hover:bg-blue-50 dark:hover:bg-slate-700 transition-all"
       >
-        <ArrowLeftRight :size="28" class="text-blue-400" />
-        <span class="text-sm font-semibold text-white">Cambio Turno</span>
-        <span class="text-xs text-slate-400 text-center"
-          >Richiedi scambio o spostamento</span
-        >
+        <ArrowLeftRight :size="28" class="text-blue-500 dark:text-blue-400" />
+        <span class="text-sm font-semibold text-slate-900 dark:text-white">Cambio Turno</span>
+        <span class="text-xs text-slate-500 dark:text-slate-400 text-center">Richiedi scambio o spostamento</span>
       </button>
       <button
         @click="sickModal = true"
-        class="flex flex-col items-center gap-2 p-4 bg-slate-800 rounded-xl border border-slate-700 hover:border-red-500 hover:bg-slate-700 transition-all"
+        class="flex flex-col items-center gap-2 p-4 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 hover:border-red-400 dark:hover:border-red-500 hover:bg-red-50 dark:hover:bg-slate-700 transition-all"
       >
-        <Thermometer :size="28" class="text-red-400" />
-        <span class="text-sm font-semibold text-red-400">Segnala Malattia</span>
-        <span class="text-xs text-slate-400 text-center"
-          >Comunica assenza per malattia</span
-        >
+        <Thermometer :size="28" class="text-red-500 dark:text-red-400" />
+        <span class="text-sm font-semibold text-red-600 dark:text-red-400">Segnala Malattia</span>
+        <span class="text-xs text-slate-500 dark:text-slate-400 text-center">Comunica assenza per malattia</span>
       </button>
     </div>
 
     <!-- Week calendar -->
-    <div class="bg-slate-800 rounded-xl border border-slate-700 p-4">
+    <div class="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-4">
       <div class="flex items-center justify-between mb-3">
-        <h3 class="text-sm font-semibold text-white">Settimana corrente</h3>
+        <h3 class="text-sm font-semibold text-slate-900 dark:text-white">Settimana corrente</h3>
         <div class="flex gap-1">
           <button
             @click="prevWeek"
-            class="px-2 py-1 text-xs bg-slate-700 hover:bg-slate-600 rounded text-white transition-colors flex items-center"
+            class="px-2 py-1 text-xs bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 rounded text-slate-700 dark:text-white transition-colors flex items-center"
           >
             <ChevronLeft :size="14" />
           </button>
           <button
             @click="nextWeek"
-            class="px-2 py-1 text-xs bg-slate-700 hover:bg-slate-600 rounded text-white transition-colors flex items-center"
+            class="px-2 py-1 text-xs bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 rounded text-slate-700 dark:text-white transition-colors flex items-center"
           >
             <ChevronRight :size="14" />
           </button>
@@ -70,7 +65,7 @@
       </div>
       <div class="grid grid-cols-7 gap-1">
         <div v-for="day in weekDays" :key="day.iso" class="text-center">
-          <div class="text-[10px] text-slate-500 capitalize mb-1">
+          <div class="text-[10px] text-slate-400 dark:text-slate-500 capitalize mb-1">
             {{ day.weekday }}
           </div>
           <div
@@ -79,7 +74,7 @@
               isToday(day.date) ? 'ring-2 ring-blue-500' : '',
               day.shiftType
                 ? SHIFT_COLORS[day.shiftType]
-                : 'bg-slate-700/40 text-slate-500',
+                : 'bg-slate-100 dark:bg-slate-700/40 text-slate-400 dark:text-slate-500',
             ]"
           >
             <div class="text-[10px] font-bold">{{ day.dayNum }}</div>
@@ -92,75 +87,59 @@
     </div>
 
     <!-- Hours balance -->
-    <div class="bg-slate-800 rounded-xl border border-slate-700 p-4">
-      <h3 class="text-sm font-semibold text-white mb-3">
+    <div class="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-4">
+      <h3 class="text-sm font-semibold text-slate-900 dark:text-white mb-3">
         Riepilogo Ore – Aprile 2026
       </h3>
       <div class="space-y-2">
-        <div
-          class="flex justify-between items-center p-3 bg-slate-700/50 rounded-lg"
-        >
-          <span class="text-sm text-slate-300">Ore lavorate</span>
-          <span class="font-mono font-bold text-white"
-            >{{ monthlyWorked }} / {{ target }}h</span
-          >
+        <div class="flex justify-between items-center p-3 bg-slate-50 dark:bg-slate-700/50 rounded-lg">
+          <span class="text-sm text-slate-600 dark:text-slate-300">Ore lavorate</span>
+          <span class="font-mono font-bold text-slate-900 dark:text-white">
+            {{ monthlyWorked }} / {{ target }}h
+          </span>
         </div>
-        <div
-          class="flex justify-between items-center p-3 bg-slate-700/50 rounded-lg"
-        >
-          <span class="text-sm text-slate-300">Rimanenti al target</span>
+        <div class="flex justify-between items-center p-3 bg-slate-50 dark:bg-slate-700/50 rounded-lg">
+          <span class="text-sm text-slate-600 dark:text-slate-300">Rimanenti al target</span>
           <span
             class="font-mono font-bold"
-            :class="
-              target - monthlyWorked > 0
-                ? 'text-yellow-400'
-                : 'text-emerald-400'
-            "
+            :class="target - monthlyWorked > 0 ? 'text-yellow-600 dark:text-yellow-400' : 'text-emerald-600 dark:text-emerald-400'"
           >
             {{ Math.max(0, target - monthlyWorked) }}h
           </span>
         </div>
-        <div
-          class="flex justify-between items-center p-3 bg-slate-700/50 rounded-lg"
-        >
-          <span class="text-sm text-slate-300">Straordinari</span>
-          <span class="font-mono font-bold text-orange-400"
-            >+{{ Math.max(0, monthlyWorked - target) }}h</span
-          >
+        <div class="flex justify-between items-center p-3 bg-slate-50 dark:bg-slate-700/50 rounded-lg">
+          <span class="text-sm text-slate-600 dark:text-slate-300">Straordinari</span>
+          <span class="font-mono font-bold text-orange-600 dark:text-orange-400">
+            +{{ Math.max(0, monthlyWorked - target) }}h
+          </span>
         </div>
       </div>
       <div class="mt-3">
-        <div class="flex justify-between text-[10px] text-slate-400 mb-1">
+        <div class="flex justify-between text-[10px] text-slate-500 dark:text-slate-400 mb-1">
           <span>Avanzamento mensile</span>
-          <span
-            >{{
-              Math.min(100, Math.round((monthlyWorked / target) * 100))
-            }}%</span
-          >
+          <span>{{ Math.min(100, Math.round((monthlyWorked / target) * 100)) }}%</span>
         </div>
-        <div class="h-2 bg-slate-700 rounded-full overflow-hidden">
+        <div class="h-2 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
           <div
             class="h-full bg-blue-500 rounded-full transition-all"
-            :style="{
-              width: Math.min(100, (monthlyWorked / target) * 100) + '%',
-            }"
+            :style="{ width: Math.min(100, (monthlyWorked / target) * 100) + '%' }"
           ></div>
         </div>
       </div>
     </div>
 
     <!-- My requests -->
-    <div class="bg-slate-800 rounded-xl border border-slate-700 p-4">
-      <h3 class="text-sm font-semibold text-white mb-3">Le mie richieste</h3>
+    <div class="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-4">
+      <h3 class="text-sm font-semibold text-slate-900 dark:text-white mb-3">Le mie richieste</h3>
       <div class="space-y-2">
         <div
           v-for="req in myRequests"
           :key="req.id"
-          class="flex items-center justify-between p-3 bg-slate-700/40 rounded-lg"
+          class="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-700/40 rounded-lg"
         >
           <div>
-            <p class="text-xs font-medium text-white">{{ req.label }}</p>
-            <p class="text-[10px] text-slate-400">{{ req.sub }}</p>
+            <p class="text-xs font-medium text-slate-900 dark:text-white">{{ req.label }}</p>
+            <p class="text-[10px] text-slate-500 dark:text-slate-400">{{ req.sub }}</p>
           </div>
           <span
             :class="[
@@ -172,7 +151,7 @@
         </div>
         <p
           v-if="myRequests.length === 0"
-          class="text-xs text-slate-500 text-center py-2"
+          class="text-xs text-slate-400 dark:text-slate-500 text-center py-2"
         >
           Nessuna richiesta recente
         </p>
@@ -182,36 +161,25 @@
     <!-- Sick Leave Modal -->
     <div
       v-if="sickModal"
-      class="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4"
+      class="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4"
       @click.self="sickModal = false"
     >
-      <div
-        class="bg-slate-800 rounded-2xl border border-slate-700 w-full max-w-md shadow-2xl"
-      >
-        <div
-          class="px-6 py-4 border-b border-slate-700 flex items-center justify-between"
-        >
-          <div class="flex items-center gap-2 text-white">
-            <Thermometer :size="18" class="text-red-400" />
-            <h3 class="text-sm font-semibold">
-              Comunicazione Malattia / Infortunio
-            </h3>
+      <div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 w-full max-w-md shadow-2xl">
+        <div class="px-6 py-4 border-b border-slate-100 dark:border-slate-700 flex items-center justify-between">
+          <div class="flex items-center gap-2 text-slate-900 dark:text-white">
+            <Thermometer :size="18" class="text-red-500 dark:text-red-400" />
+            <h3 class="text-sm font-semibold">Comunicazione Malattia / Infortunio</h3>
           </div>
-          <button
-            @click="sickModal = false"
-            class="text-slate-400 hover:text-white"
-          >
+          <button @click="sickModal = false" class="text-slate-400 hover:text-slate-700 dark:hover:text-white">
             <X :size="20" />
           </button>
         </div>
         <div class="px-6 py-4 space-y-4">
           <div>
-            <label class="text-xs text-slate-400 block mb-1"
-              >Tipo assenza</label
-            >
+            <label class="text-xs text-slate-600 dark:text-slate-400 block mb-1">Tipo assenza</label>
             <select
               v-model="sickForm.type"
-              class="w-full bg-slate-700 text-white text-sm px-3 py-2 rounded-lg border border-slate-600 focus:outline-none focus:border-red-500"
+              class="w-full bg-white dark:bg-slate-700 text-slate-900 dark:text-white text-sm px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-600 focus:outline-none focus:border-red-500"
             >
               <option value="MAL">Malattia</option>
               <option value="INF">Infortunio sul lavoro</option>
@@ -219,50 +187,42 @@
           </div>
           <div class="grid grid-cols-2 gap-3">
             <div>
-              <label class="text-xs text-slate-400 block mb-1"
-                >Data inizio</label
-              >
+              <label class="text-xs text-slate-600 dark:text-slate-400 block mb-1">Data inizio</label>
               <input
                 type="date"
                 v-model="sickForm.startDate"
-                class="w-full bg-slate-700 text-white text-sm px-3 py-2 rounded-lg border border-slate-600 focus:outline-none focus:border-red-500"
+                class="w-full bg-white dark:bg-slate-700 text-slate-900 dark:text-white text-sm px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-600 focus:outline-none focus:border-red-500"
               />
             </div>
             <div>
-              <label class="text-xs text-slate-400 block mb-1"
-                >Data fine presunta</label
-              >
+              <label class="text-xs text-slate-600 dark:text-slate-400 block mb-1">Data fine presunta</label>
               <input
                 type="date"
                 v-model="sickForm.endDate"
-                class="w-full bg-slate-700 text-white text-sm px-3 py-2 rounded-lg border border-slate-600 focus:outline-none focus:border-red-500"
+                class="w-full bg-white dark:bg-slate-700 text-slate-900 dark:text-white text-sm px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-600 focus:outline-none focus:border-red-500"
               />
             </div>
           </div>
           <div>
-            <label class="text-xs text-slate-400 block mb-1"
-              >Note (opzionale)</label
-            >
+            <label class="text-xs text-slate-600 dark:text-slate-400 block mb-1">Note (opzionale)</label>
             <textarea
               v-model="sickForm.note"
               rows="2"
-              class="w-full bg-slate-700 text-white text-sm px-3 py-2 rounded-lg border border-slate-600 focus:outline-none focus:border-red-500 resize-none"
+              class="w-full bg-white dark:bg-slate-700 text-slate-900 dark:text-white text-sm px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-600 focus:outline-none focus:border-red-500 resize-none"
               placeholder="Descrizione..."
             ></textarea>
           </div>
-          <div
-            class="flex items-center gap-2 p-3 bg-orange-500/10 border border-orange-500/30 rounded-lg"
-          >
-            <AlertTriangle :size="16" class="text-orange-400 shrink-0" />
-            <p class="text-xs text-orange-300">
+          <div class="flex items-center gap-2 p-3 bg-orange-500/10 border border-orange-500/30 rounded-lg">
+            <AlertTriangle :size="16" class="text-orange-500 dark:text-orange-400 shrink-0" />
+            <p class="text-xs text-orange-700 dark:text-orange-300">
               Il certificato medico dovrà essere inviato entro 48h all'HR.
             </p>
           </div>
         </div>
-        <div class="px-6 py-4 border-t border-slate-700 flex gap-2 justify-end">
+        <div class="px-6 py-4 border-t border-slate-100 dark:border-slate-700 flex gap-2 justify-end">
           <button
             @click="sickModal = false"
-            class="px-4 py-2 text-sm text-slate-400 hover:bg-slate-700 rounded-lg transition-colors"
+            class="px-4 py-2 text-sm text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition-colors"
           >
             Annulla
           </button>
@@ -279,45 +239,34 @@
     <!-- Shift Swap Modal -->
     <div
       v-if="swapModal"
-      class="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4"
+      class="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4"
       @click.self="swapModal = false"
     >
-      <div
-        class="bg-slate-800 rounded-2xl border border-slate-700 w-full max-w-md shadow-2xl"
-      >
-        <div
-          class="px-6 py-4 border-b border-slate-700 flex items-center justify-between"
-        >
-          <div class="flex items-center gap-2 text-white">
-            <ArrowLeftRight :size="18" class="text-blue-400" />
+      <div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 w-full max-w-md shadow-2xl">
+        <div class="px-6 py-4 border-b border-slate-100 dark:border-slate-700 flex items-center justify-between">
+          <div class="flex items-center gap-2 text-slate-900 dark:text-white">
+            <ArrowLeftRight :size="18" class="text-blue-500 dark:text-blue-400" />
             <h3 class="text-sm font-semibold">Richiesta Cambio Turno</h3>
           </div>
-          <button
-            @click="swapModal = false"
-            class="text-slate-400 hover:text-white"
-          >
+          <button @click="swapModal = false" class="text-slate-400 hover:text-slate-700 dark:hover:text-white">
             <X :size="20" />
           </button>
         </div>
         <div class="px-6 py-4 space-y-4">
           <div class="grid grid-cols-2 gap-3">
             <div>
-              <label class="text-xs text-slate-400 block mb-1"
-                >Data turno da cambiare</label
-              >
+              <label class="text-xs text-slate-600 dark:text-slate-400 block mb-1">Data turno da cambiare</label>
               <input
                 type="date"
                 v-model="swapForm.date"
-                class="w-full bg-slate-700 text-white text-sm px-3 py-2 rounded-lg border border-slate-600 focus:outline-none focus:border-blue-500"
+                class="w-full bg-white dark:bg-slate-700 text-slate-900 dark:text-white text-sm px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-600 focus:outline-none focus:border-blue-500"
               />
             </div>
             <div>
-              <label class="text-xs text-slate-400 block mb-1"
-                >Turno attuale</label
-              >
+              <label class="text-xs text-slate-600 dark:text-slate-400 block mb-1">Turno attuale</label>
               <select
                 v-model="swapForm.fromShift"
-                class="w-full bg-slate-700 text-white text-sm px-3 py-2 rounded-lg border border-slate-600 focus:outline-none focus:border-blue-500"
+                class="w-full bg-white dark:bg-slate-700 text-slate-900 dark:text-white text-sm px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-600 focus:outline-none focus:border-blue-500"
               >
                 <option v-for="(t, k) in SHIFT_TYPES" :key="k" :value="k">
                   {{ t.abbr }} – {{ t.label }}
@@ -326,12 +275,10 @@
             </div>
           </div>
           <div>
-            <label class="text-xs text-slate-400 block mb-1"
-              >Turno proposto</label
-            >
+            <label class="text-xs text-slate-600 dark:text-slate-400 block mb-1">Turno proposto</label>
             <select
               v-model="swapForm.toShift"
-              class="w-full bg-slate-700 text-white text-sm px-3 py-2 rounded-lg border border-slate-600 focus:outline-none focus:border-blue-500"
+              class="w-full bg-white dark:bg-slate-700 text-slate-900 dark:text-white text-sm px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-600 focus:outline-none focus:border-blue-500"
             >
               <option v-for="(t, k) in SHIFT_TYPES" :key="k" :value="k">
                 {{ t.abbr }} – {{ t.label }}
@@ -339,12 +286,10 @@
             </select>
           </div>
           <div>
-            <label class="text-xs text-slate-400 block mb-1"
-              >Collega coinvolto (se scambio)</label
-            >
+            <label class="text-xs text-slate-600 dark:text-slate-400 block mb-1">Collega coinvolto (se scambio)</label>
             <select
               v-model="swapForm.colleague"
-              class="w-full bg-slate-700 text-white text-sm px-3 py-2 rounded-lg border border-slate-600 focus:outline-none focus:border-blue-500"
+              class="w-full bg-white dark:bg-slate-700 text-slate-900 dark:text-white text-sm px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-600 focus:outline-none focus:border-blue-500"
             >
               <option value="">Nessuno (spostamento singolo)</option>
               <option v-for="s in colleagues" :key="s.id" :value="s.id">
@@ -353,21 +298,19 @@
             </select>
           </div>
           <div>
-            <label class="text-xs text-slate-400 block mb-1"
-              >Motivazione (opzionale)</label
-            >
+            <label class="text-xs text-slate-600 dark:text-slate-400 block mb-1">Motivazione (opzionale)</label>
             <textarea
               v-model="swapForm.reason"
               rows="2"
-              class="w-full bg-slate-700 text-white text-sm px-3 py-2 rounded-lg border border-slate-600 focus:outline-none focus:border-blue-500 resize-none"
+              class="w-full bg-white dark:bg-slate-700 text-slate-900 dark:text-white text-sm px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-600 focus:outline-none focus:border-blue-500 resize-none"
               placeholder="Motivo della richiesta..."
             ></textarea>
           </div>
         </div>
-        <div class="px-6 py-4 border-t border-slate-700 flex gap-2 justify-end">
+        <div class="px-6 py-4 border-t border-slate-100 dark:border-slate-700 flex gap-2 justify-end">
           <button
             @click="swapModal = false"
-            class="px-4 py-2 text-sm text-slate-400 hover:bg-slate-700 rounded-lg transition-colors"
+            class="px-4 py-2 text-sm text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition-colors"
           >
             Annulla
           </button>
@@ -382,8 +325,6 @@
     </div>
   </div>
 </template>
-
-<!-- ########## SCRIPT ########## -->
 
 <script setup>
 import {
@@ -482,12 +423,7 @@ function submitSick() {
     ...sickForm,
   });
   sickModal.value = false;
-  Object.assign(sickForm, {
-    type: "MAL",
-    startDate: "",
-    endDate: "",
-    note: "",
-  });
+  Object.assign(sickForm, { type: "MAL", startDate: "", endDate: "", note: "" });
 }
 
 function submitSwap() {
@@ -500,13 +436,7 @@ function submitSwap() {
     ...swapForm,
   });
   swapModal.value = false;
-  Object.assign(swapForm, {
-    date: "",
-    fromShift: "M",
-    toShift: "P",
-    colleague: "",
-    reason: "",
-  });
+  Object.assign(swapForm, { date: "", fromShift: "M", toShift: "P", colleague: "", reason: "" });
 }
 
 const myRequests = computed(() => [
@@ -542,12 +472,12 @@ function statusLabel(s) {
 function statusClass(s) {
   return (
     {
-      pending: "bg-yellow-500/20 text-yellow-300",
-      approved: "bg-emerald-500/20 text-emerald-300",
-      rejected: "bg-red-500/20 text-red-300",
-      cert_pending: "bg-orange-500/20 text-orange-300",
-      cert_received: "bg-blue-500/20 text-blue-300",
-    }[s] || "bg-slate-600 text-slate-300"
+      pending: "bg-yellow-500/20 text-yellow-700 dark:text-yellow-300",
+      approved: "bg-emerald-500/20 text-emerald-700 dark:text-emerald-300",
+      rejected: "bg-red-500/20 text-red-700 dark:text-red-300",
+      cert_pending: "bg-orange-500/20 text-orange-700 dark:text-orange-300",
+      cert_received: "bg-blue-500/20 text-blue-700 dark:text-blue-300",
+    }[s] || "bg-slate-200 dark:bg-slate-600 text-slate-700 dark:text-slate-300"
   );
 }
 </script>

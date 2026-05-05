@@ -1,12 +1,12 @@
 <template>
   <div class="p-6 space-y-6">
     <div class="flex flex-wrap gap-3 items-center justify-between">
-      <h1 class="text-base font-semibold dark:text-white text-black">
+      <h1 class="text-base font-semibold text-slate-900 dark:text-white">
         Monitoraggio Ore Contrattuali – Aprile 2026
       </h1>
       <select
         v-model="deptFilter"
-        class="dark:bg-slate-700 bg-gray-200 dark:text-slate-200 text-gray-800 text-xs px-3 py-2 rounded-lg dark:border-slate-600 border-gray-400 focus:outline-none"
+        class="bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-200 text-xs px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-600 focus:outline-none"
       >
         <option value="">Tutti i reparti</option>
         <option v-for="d in departments" :key="d" :value="d">{{ d }}</option>
@@ -18,7 +18,7 @@
       <div
         v-for="emp in filteredStaff"
         :key="emp.id"
-        class="dark:bg-slate-800 bg-gray-50 rounded-xl dark:border border dark:border-slate-700 border-gray-300 p-4 space-y-3 transition-colors"
+        class="bg-white dark:bg-slate-800 rounded-xl border dark:border-slate-700 border-slate-200 p-4 space-y-3 transition-colors"
         :class="emp.statusBorder"
       >
         <div class="flex items-start justify-between">
@@ -29,11 +29,9 @@
               {{ emp.initials }}
             </div>
             <div>
-              <p class="text-sm font-semibold text-white">{{ emp.name }}</p>
-              <p class="text-xs text-slate-400">
-                {{ emp.dept }} · {{ emp.contract }} ({{
-                  emp.contractHours
-                }}h/sett)
+              <p class="text-sm font-semibold text-slate-900 dark:text-white">{{ emp.name }}</p>
+              <p class="text-xs text-slate-500 dark:text-slate-400">
+                {{ emp.dept }} · {{ emp.contract }} ({{ emp.contractHours }}h/sett)
               </p>
             </div>
           </div>
@@ -48,44 +46,38 @@
 
         <!-- Progress bar -->
         <div>
-          <div class="flex justify-between text-[10px] text-slate-400 mb-1">
+          <div class="flex justify-between text-[10px] text-slate-500 dark:text-slate-400 mb-1">
             <span>{{ emp.worked }}h / {{ emp.target }}h</span>
-            <span
-              >{{
-                Math.min(100, Math.round((emp.worked / emp.target) * 100))
-              }}%</span
-            >
+            <span>{{ Math.min(100, Math.round((emp.worked / emp.target) * 100)) }}%</span>
           </div>
-          <div class="h-2.5 bg-slate-700 rounded-full overflow-hidden">
+          <div class="h-2.5 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
             <div
               :class="['h-full rounded-full transition-all', emp.barColor]"
-              :style="{
-                width: Math.min(100, (emp.worked / emp.target) * 100) + '%',
-              }"
+              :style="{ width: Math.min(100, (emp.worked / emp.target) * 100) + '%' }"
             ></div>
           </div>
         </div>
 
         <!-- Stats row -->
         <div class="grid grid-cols-3 gap-2 text-xs">
-          <div class="bg-slate-700/40 rounded-lg p-2 text-center">
-            <p class="text-slate-400 text-[10px]">Lavorate</p>
-            <p class="font-bold text-white font-mono">{{ emp.worked }}h</p>
+          <div class="bg-slate-50 dark:bg-slate-700/40 rounded-lg p-2 text-center">
+            <p class="text-slate-500 dark:text-slate-400 text-[10px]">Lavorate</p>
+            <p class="font-bold text-slate-900 dark:text-white font-mono">{{ emp.worked }}h</p>
           </div>
-          <div class="bg-slate-700/40 rounded-lg p-2 text-center">
-            <p class="text-slate-400 text-[10px]">Residue</p>
+          <div class="bg-slate-50 dark:bg-slate-700/40 rounded-lg p-2 text-center">
+            <p class="text-slate-500 dark:text-slate-400 text-[10px]">Residue</p>
             <p
               class="font-bold font-mono"
-              :class="emp.remaining > 0 ? 'text-yellow-400' : 'text-slate-400'"
+              :class="emp.remaining > 0 ? 'text-yellow-600 dark:text-yellow-400' : 'text-slate-400 dark:text-slate-500'"
             >
               {{ Math.max(0, emp.remaining) }}h
             </p>
           </div>
-          <div class="bg-slate-700/40 rounded-lg p-2 text-center">
-            <p class="text-slate-400 text-[10px]">Straord.</p>
+          <div class="bg-slate-50 dark:bg-slate-700/40 rounded-lg p-2 text-center">
+            <p class="text-slate-500 dark:text-slate-400 text-[10px]">Straord.</p>
             <p
               class="font-bold font-mono"
-              :class="emp.overtime > 0 ? 'text-orange-400' : 'text-slate-400'"
+              :class="emp.overtime > 0 ? 'text-orange-600 dark:text-orange-400' : 'text-slate-400 dark:text-slate-500'"
             >
               {{ emp.overtime > 0 ? "+" + emp.overtime : "—" }}
             </p>
@@ -97,7 +89,7 @@
           <div
             v-for="w in emp.warnings"
             :key="w"
-            class="flex items-center gap-2 text-[10px] text-orange-300 bg-orange-500/10 border border-orange-500/20 rounded-lg px-2 py-1"
+            class="flex items-center gap-2 text-[10px] text-orange-700 dark:text-orange-300 bg-orange-500/10 border border-orange-500/20 rounded-lg px-2 py-1"
           >
             <AlertTriangle :size="11" class="shrink-0" />
             {{ w }}
@@ -107,14 +99,14 @@
     </div>
 
     <!-- Compliance table -->
-    <div class="bg-slate-800 rounded-xl border border-slate-700 p-5">
-      <h2 class="text-sm font-semibold text-white mb-4">
+    <div class="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-5">
+      <h2 class="text-sm font-semibold text-slate-900 dark:text-white mb-4">
         Riepilogo Conformità Contrattuale
       </h2>
       <div class="overflow-x-auto">
         <table class="w-full text-xs">
           <thead>
-            <tr class="text-slate-400 border-b border-slate-700">
+            <tr class="text-slate-600 dark:text-slate-400 border-b border-slate-200 dark:border-slate-700">
               <th class="text-left py-2.5 pr-4 font-medium">Dipendente</th>
               <th class="text-right py-2.5 pr-4 font-medium">Max ore/giorno</th>
               <th class="text-right py-2.5 pr-4 font-medium">Riposi minimi</th>
@@ -126,27 +118,24 @@
             <tr
               v-for="emp in filteredStaff"
               :key="emp.id"
-              class="border-b border-slate-700/40 hover:bg-slate-700/20"
+              class="border-b border-slate-100 dark:border-slate-700/40 hover:bg-slate-50 dark:hover:bg-slate-700/20"
             >
-              <td class="py-2.5 pr-4 text-white font-medium">{{ emp.name }}</td>
-              <td class="py-2.5 pr-4 text-right font-mono text-emerald-400">
+              <td class="py-2.5 pr-4 text-slate-900 dark:text-white font-medium">{{ emp.name }}</td>
+              <td class="py-2.5 pr-4 text-right font-mono text-emerald-600 dark:text-emerald-400">
                 <div class="flex items-center justify-end gap-1">
                   <CheckCircle :size="12" /> &lt;13h
                 </div>
               </td>
               <td
                 class="py-2.5 pr-4 text-right font-mono"
-                :class="emp.id === 3 ? 'text-red-400' : 'text-emerald-400'"
+                :class="emp.id === 3 ? 'text-red-600 dark:text-red-400' : 'text-emerald-600 dark:text-emerald-400'"
               >
                 <div class="flex items-center justify-end gap-1">
-                  <component
-                    :is="emp.id === 3 ? XCircle : CheckCircle"
-                    :size="12"
-                  />
-                  {{ emp.id === 3 ? "10h (min 11h)" : "&ge;11h" }}
+                  <component :is="emp.id === 3 ? XCircle : CheckCircle" :size="12" />
+                  {{ emp.id === 3 ? "10h (min 11h)" : "≥11h" }}
                 </div>
               </td>
-              <td class="py-2.5 pr-4 text-right font-mono text-slate-300">
+              <td class="py-2.5 pr-4 text-right font-mono text-slate-600 dark:text-slate-300">
                 {{ [3, 1, 5].includes(emp.id) ? "8h" : "0h" }}
               </td>
               <td class="py-2.5">
@@ -154,8 +143,8 @@
                   :class="[
                     'px-2 py-0.5 rounded-full text-[10px] font-medium',
                     emp.id === 3
-                      ? 'bg-red-500/20 text-red-300'
-                      : 'bg-emerald-500/20 text-emerald-300',
+                      ? 'bg-red-500/20 text-red-700 dark:text-red-300'
+                      : 'bg-emerald-500/20 text-emerald-700 dark:text-emerald-300',
                   ]"
                 >
                   {{ emp.id === 3 ? "Violazione" : "Conforme" }}
@@ -169,7 +158,6 @@
   </div>
 </template>
 
-<!-- ########## SCRIPT ########## -->
 <script setup>
 import { AlertTriangle, CheckCircle, XCircle } from "lucide-vue-next";
 import { computed, ref } from "vue";
@@ -199,22 +187,22 @@ const filteredStaff = computed(() =>
       let statusLabel, statusClass, statusBorder, barColor;
       if (s.id === 8) {
         statusLabel = "In malattia";
-        statusClass = "bg-red-500/20 text-red-300";
+        statusClass = "bg-red-500/20 text-red-700 dark:text-red-300";
         statusBorder = "border-red-500/40";
         barColor = "bg-red-500";
       } else if (overtime > 8) {
         statusLabel = "Straordinari";
-        statusClass = "bg-orange-500/20 text-orange-300";
+        statusClass = "bg-orange-500/20 text-orange-700 dark:text-orange-300";
         statusBorder = "border-orange-500/40";
         barColor = "bg-orange-500";
       } else if (worked >= target * 0.9) {
         statusLabel = "Regolare";
-        statusClass = "bg-emerald-500/20 text-emerald-300";
-        statusBorder = "border-slate-700";
+        statusClass = "bg-emerald-500/20 text-emerald-700 dark:text-emerald-300";
+        statusBorder = "border-slate-200 dark:border-slate-700";
         barColor = "bg-emerald-500";
       } else {
         statusLabel = "Ore mancanti";
-        statusClass = "bg-yellow-500/20 text-yellow-300";
+        statusClass = "bg-yellow-500/20 text-yellow-700 dark:text-yellow-300";
         statusBorder = "border-yellow-500/40";
         barColor = "bg-yellow-500";
       }

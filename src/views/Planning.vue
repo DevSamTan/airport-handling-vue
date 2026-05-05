@@ -101,7 +101,7 @@
                 v-for="day in weekDays"
                 :key="day.iso"
                 :class="[
-                  'px-2 py-3 text-center border-r border-slate-700 font-medium',
+                  'px-2 py-3 text-center border-r border-slate-200 dark:border-slate-700 font-medium',
                   isToday(day.date) && 'text-blue-400',
                 ]"
               >
@@ -109,7 +109,7 @@
                 <div
                   :class="[
                     'text-base font-bold mt-0.5',
-                    isToday(day.date) ? 'text-blue-400' : 'text-white',
+                    isToday(day.date) ? 'text-blue-400' : 'text-slate-900 dark:text-white',
                   ]"
                 >
                   {{ day.dayNum }}
@@ -124,9 +124,9 @@
             <tr
               v-for="member in filteredStaff"
               :key="member.id"
-              class="border-t border-slate-700/50 hover:bg-slate-700/20 transition-colors"
+              class="border-t border-slate-100 dark:border-slate-700/50 hover:bg-slate-50 dark:hover:bg-slate-700/20 transition-colors"
             >
-              <td class="px-4 py-2 border-r border-slate-700">
+              <td class="px-4 py-2 border-r border-slate-200 dark:border-slate-700">
                 <div class="flex items-center gap-2">
                   <div
                     class="w-7 h-7 rounded-full bg-blue-600 flex items-center justify-center text-[10px] font-bold text-white shrink-0"
@@ -134,7 +134,7 @@
                     {{ member.initials }}
                   </div>
                   <div>
-                    <div class="font-medium text-white text-xs">
+                    <div class="font-medium text-slate-900 dark:text-white text-xs">
                       {{ member.name }}
                     </div>
                     <div class="text-slate-500 text-[10px]">
@@ -147,7 +147,7 @@
               <td
                 v-for="day in weekDays"
                 :key="day.iso"
-                class="px-1 py-1.5 border-r border-slate-700/50 align-top"
+                class="px-1 py-1.5 border-r border-slate-100 dark:border-slate-700/50 align-top"
               >
                 <!-- Filled cell -->
                 <div
@@ -156,7 +156,7 @@
                     'group relative rounded p-1.5 cursor-pointer transition-opacity',
                     SHIFT_COLORS[shiftStore.getShift(member.id, day.date)],
                     isPasteTarget(member.id, day.date) &&
-                      'ring-2 ring-blue-400 ring-offset-1 ring-offset-slate-800',
+                      'ring-2 ring-blue-400 ring-offset-1 ring-offset-white dark:ring-offset-slate-800',
                   ]"
                   @click.stop="openEdit(member, day.date)"
                   @contextmenu.prevent.stop="
@@ -195,7 +195,7 @@
                     'w-full h-12 border border-dashed rounded transition-all flex items-center justify-center',
                     clipboard
                       ? 'border-blue-500/50 text-blue-500/50 hover:border-blue-400 hover:text-blue-400 hover:bg-blue-500/5'
-                      : 'border-slate-600 text-slate-600 hover:border-blue-500 hover:text-blue-500',
+                      : 'border-slate-300 dark:border-slate-600 text-slate-400 dark:text-slate-600 hover:border-blue-500 hover:text-blue-500',
                   ]"
                   :title="
                     clipboard
@@ -228,21 +228,21 @@
             </tr>
 
             <!-- Daily totals -->
-            <tr class="border-t-2 border-slate-600 bg-slate-900/40">
+            <tr class="border-t-2 border-slate-200 dark:border-slate-600 bg-slate-100 dark:bg-slate-900/40">
               <td
-                class="px-4 py-2 text-xs font-semibold text-slate-400 border-r border-slate-700"
+                class="px-4 py-2 text-xs font-semibold text-slate-600 dark:text-slate-400 border-r border-slate-200 dark:border-slate-700"
               >
                 Operatori/giorno
               </td>
               <td
                 v-for="day in weekDays"
                 :key="day.iso"
-                class="px-2 py-2 text-center border-r border-slate-700/50"
+                class="px-2 py-2 text-center border-r border-slate-100 dark:border-slate-700/50"
               >
                 <span
                   :class="[
                     'text-xs font-bold',
-                    dayOp(day.date) < 3 ? 'text-red-400' : 'text-slate-300',
+                    dayOp(day.date) < 3 ? 'text-red-500 dark:text-red-400' : 'text-slate-700 dark:text-slate-300',
                   ]"
                 >
                   {{ dayOp(day.date) }}
@@ -260,13 +260,13 @@
       <div
         v-if="ctxMenu.open"
         :style="{ top: ctxMenu.y + 'px', left: ctxMenu.x + 'px' }"
-        class="fixed z-[100] bg-slate-800 border border-slate-600 rounded-xl shadow-2xl py-1 min-w-[180px]"
+        class="fixed z-[100] bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-600 rounded-xl shadow-2xl py-1 min-w-[180px]"
         @click.stop
       >
         <!-- Header: shows what shift is in this cell -->
         <div
           v-if="ctxMenu.existingShift"
-          class="px-3 py-2 border-b border-slate-700 mb-1"
+          class="px-3 py-2 border-b border-slate-100 dark:border-slate-700 mb-1"
         >
           <div class="flex items-center gap-2">
             <div
@@ -275,7 +275,7 @@
                 SHIFT_COLORS[ctxMenu.existingShift].split(' ')[0],
               ]"
             ></div>
-            <span class="text-[10px] text-slate-400"
+            <span class="text-[10px] text-slate-500 dark:text-slate-400"
               >{{ SHIFT_TYPES[ctxMenu.existingShift].label }} ·
               {{ SHIFT_TYPES[ctxMenu.existingShift].hours }}</span
             >
@@ -286,12 +286,12 @@
         <button
           v-if="ctxMenu.existingShift"
           @click="copyShift"
-          class="w-full flex items-center gap-2.5 px-3 py-2 text-xs text-slate-200 hover:bg-slate-700 transition-colors"
+          class="w-full flex items-center gap-2.5 px-3 py-2 text-xs text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"
         >
           <Copy :size="14" class="text-slate-400" />
           Copia turno
           <kbd
-            class="ml-auto text-[9px] text-slate-500 bg-slate-700 px-1.5 py-0.5 rounded"
+            class="ml-auto text-[9px] text-slate-400 dark:text-slate-500 bg-slate-100 dark:bg-slate-700 px-1.5 py-0.5 rounded"
             >Ctrl+C</kbd
           >
         </button>
@@ -311,20 +311,20 @@
             >
           </span>
           <kbd
-            class="ml-auto text-[9px] text-slate-500 bg-slate-700 px-1.5 py-0.5 rounded"
+            class="ml-auto text-[9px] text-slate-400 dark:text-slate-500 bg-slate-100 dark:bg-slate-700 px-1.5 py-0.5 rounded"
             >Ctrl+V</kbd
           >
         </button>
 
         <div
           v-if="ctxMenu.existingShift || clipboard"
-          class="my-1 border-t border-slate-700"
+          class="my-1 border-t border-slate-100 dark:border-slate-700"
         ></div>
 
         <!-- Edit -->
         <button
           @click="ctxEdit"
-          class="w-full flex items-center gap-2.5 px-3 py-2 text-xs text-slate-200 hover:bg-slate-700 transition-colors"
+          class="w-full flex items-center gap-2.5 px-3 py-2 text-xs text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"
         >
           <Pencil :size="14" class="text-slate-400" />
           Modifica turno
@@ -357,34 +357,34 @@
       @click.self="modal.open = false"
     >
       <div
-        class="bg-slate-800 rounded-2xl border border-slate-700 w-full max-w-sm shadow-2xl"
+        class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 w-full max-w-sm shadow-2xl"
       >
         <div
-          class="px-6 py-4 border-b border-slate-700 flex items-center justify-between"
+          class="px-6 py-4 border-b border-slate-100 dark:border-slate-700 flex items-center justify-between"
         >
-          <h3 class="text-sm font-semibold text-white">Assegna Turno</h3>
+          <h3 class="text-sm font-semibold text-slate-900 dark:text-white">Assegna Turno</h3>
           <button
             @click="modal.open = false"
-            class="text-slate-400 hover:text-white"
+            class="text-slate-400 hover:text-slate-700 dark:hover:text-white"
           >
             <X :size="20" />
           </button>
         </div>
         <div class="px-6 py-4 space-y-4">
           <div>
-            <p class="text-xs text-slate-400">Operatore</p>
-            <p class="text-sm font-semibold text-white">
+            <p class="text-xs text-slate-500 dark:text-slate-400">Operatore</p>
+            <p class="text-sm font-semibold text-slate-900 dark:text-white">
               {{ modal.staff?.name }}
             </p>
           </div>
           <div>
-            <p class="text-xs text-slate-400">Data</p>
-            <p class="text-sm font-semibold text-white">
+            <p class="text-xs text-slate-500 dark:text-slate-400">Data</p>
+            <p class="text-sm font-semibold text-slate-900 dark:text-white">
               {{ modal.dateLabel }}
             </p>
           </div>
           <div>
-            <label class="text-xs text-slate-400 block mb-2">Tipo turno</label>
+            <label class="text-xs text-slate-500 dark:text-slate-400 block mb-2">Tipo turno</label>
             <div class="grid grid-cols-2 gap-2">
               <button
                 v-for="(type, key) in SHIFT_TYPES"
@@ -394,29 +394,29 @@
                   'p-2.5 rounded-lg border text-left transition-all',
                   modal.selected === key
                     ? 'border-blue-500 bg-blue-500/20'
-                    : 'border-slate-600 hover:border-slate-500 bg-slate-700/50',
+                    : 'border-slate-200 dark:border-slate-600 hover:border-slate-400 dark:hover:border-slate-500 bg-slate-50 dark:bg-slate-700/50',
                 ]"
               >
-                <div class="text-xs font-bold text-white">{{ type.abbr }}</div>
-                <div class="text-[10px] text-slate-400 mt-0.5">
+                <div class="text-xs font-bold text-slate-900 dark:text-white">{{ type.abbr }}</div>
+                <div class="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5">
                   {{ type.label }}
                 </div>
-                <div class="text-[10px] text-slate-500">{{ type.hours }}</div>
+                <div class="text-[10px] text-slate-400 dark:text-slate-500">{{ type.hours }}</div>
               </button>
             </div>
           </div>
         </div>
-        <div class="px-6 py-4 border-t border-slate-700 flex gap-2 justify-end">
+        <div class="px-6 py-4 border-t border-slate-100 dark:border-slate-700 flex gap-2 justify-end">
           <button
             v-if="shiftStore.getShift(modal.staff?.id, modal.date)"
             @click="removeShift"
-            class="px-4 py-2 text-sm text-red-400 hover:bg-red-500/10 rounded-lg transition-colors"
+            class="px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors"
           >
             Rimuovi
           </button>
           <button
             @click="modal.open = false"
-            class="px-4 py-2 text-sm text-slate-400 hover:bg-slate-700 rounded-lg transition-colors"
+            class="px-4 py-2 text-sm text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition-colors"
           >
             Annulla
           </button>

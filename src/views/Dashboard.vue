@@ -278,9 +278,9 @@ const timeSlots = [
 ];
 
 function staffingLevel(count) {
-  if (count >= 5) return "bg-emerald-500/20 text-emerald-300";
-  if (count >= 3) return "bg-yellow-500/20 text-yellow-300";
-  return "bg-red-500/20 text-red-300";
+  if (count >= 5) return "bg-emerald-500/20 text-emerald-700 dark:text-emerald-300";
+  if (count >= 3) return "bg-yellow-500/20 text-yellow-700 dark:text-yellow-300";
+  return "bg-red-500/20 text-red-700 dark:text-red-300";
 }
 
 const alerts = [
@@ -328,16 +328,16 @@ const weekSummary = computed(() =>
     let statusLabel, statusClass;
     if (s.id === 8) {
       statusLabel = "Malattia";
-      statusClass = "bg-red-500/20 text-red-300";
+      statusClass = "bg-red-500/20 text-red-700 dark:text-red-300";
     } else if (worked > target + 4) {
       statusLabel = "Straordinario";
-      statusClass = "bg-orange-500/20 text-orange-300";
+      statusClass = "bg-orange-500/20 text-orange-700 dark:text-orange-300";
     } else if (worked < target - 4) {
       statusLabel = "Ore mancanti";
-      statusClass = "bg-yellow-500/20 text-yellow-300";
+      statusClass = "bg-yellow-500/20 text-yellow-700 dark:text-yellow-300";
     } else {
       statusLabel = "Regolare";
-      statusClass = "bg-emerald-500/20 text-emerald-300";
+      statusClass = "bg-emerald-500/20 text-emerald-700 dark:text-emerald-300";
     }
     return { ...s, worked, target, balance, statusLabel, statusClass };
   }),
