@@ -5,7 +5,12 @@
       "Bash(where node *)",
       "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:5173)",
       "Bash(curl -s http://localhost:5173)",
-      "Bash(npm install *)"
+      "Bash(npm install *)",
+      "Bash(Get-ChildItem -Path \"c:\\\\Users\\\\stantill\\\\OneDrive - NTT DATA EMEAL\\\\Desktop\\\\airport-handling-vue\" -Recurse -Force)",
+      "Bash(Select-Object FullName)",
+      "Bash(ConvertTo-Csv -NoTypeInformation)",
+      "Bash(Sort-Object)",
+      "PowerShell(Get-ChildItem -Path \"c:\\\\Users\\\\stantill\\\\OneDrive - NTT DATA EMEAL\\\\Desktop\\\\airport-handling-vue\" -Recurse -Force | Select-Object FullName | ForEach-Object { $_.FullName })"
     ]
   }
 }

@@ -1,5 +1,9 @@
 <template>
-  <div class="flex h-screen overflow-hidden bg-white dark:bg-slate-900">
+  <!-- Login page: render without sidebar / topbar -->
+  <router-view v-if="isLoginPage" />
+
+  <!-- Full app layout -->
+  <div v-else class="flex h-screen overflow-hidden bg-white dark:bg-slate-900">
     <!-- Sidebar -->
     <aside
       :class="[
@@ -19,14 +23,14 @@
         <span
           v-if="appStore.sidebarOpen"
           class="font-bold text-slate-900 dark:text-white text-sm tracking-wide"
-          >Nome e Logo Aziendale</span
-        >
+          >Nome Azienda
+        </span>
       </div>
 
       <!-- Nav -->
       <nav class="flex-1 p-2 space-y-1 overflow-y-auto">
         <router-link
-          v-for="item in navItems"
+          v-for="item in allowedNavItems"
           :key="item.to"
           :to="item.to"
           class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"
@@ -41,36 +45,42 @@
         </router-link>
       </nav>
 
-      <!-- Role switcher -->
+      <!-- User profile + logout -->
       <div class="p-3 border-t border-slate-200 dark:border-slate-700">
-        <div v-if="appStore.sidebarOpen" class="mb-2">
-          <label class="text-xs text-slate-600 dark:text-slate-500 mb-1 block"
-            >Ruolo attivo</label
-          >
-          <select
-            v-model="appStore.currentRole"
-            class="w-full bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-200 text-xs px-2 py-1.5 rounded border border-slate-300 dark:border-slate-600 focus:outline-none focus:border-blue-500"
-          >
-            <option v-for="r in roles" :key="r" :value="r">{{ r }}</option>
-          </select>
-        </div>
         <div class="flex items-center gap-2">
           <div
             class="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center text-white text-xs font-bold shrink-0"
           >
-            MR
+            {{ authStore.currentUser?.initials ?? "?" }}
           </div>
-          <div v-if="appStore.sidebarOpen" class="overflow-hidden">
+          <div v-if="appStore.sidebarOpen" class="flex-1 overflow-hidden">
             <p
               class="text-sm font-medium text-slate-900 dark:text-white truncate"
             >
-              Marco Rossi
+              {{ authStore.currentUser?.name }}
             </p>
-            <p class="text-xs text-slate-600 dark:text-slate-400 truncate">
-              {{ appStore.currentRole }}
+            <p class="text-xs text-slate-500 dark:text-slate-400 truncate">
+              {{ authStore.userRole }}
             </p>
           </div>
+          <button
+            v-if="appStore.sidebarOpen"
+            @click="handleLogout"
+            title="Esci"
+            class="p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-lg transition-colors shrink-0"
+          >
+            <LogOut :size="15" />
+          </button>
         </div>
+        <!-- Logout icon-only when sidebar collapsed -->
+        <button
+          v-if="!appStore.sidebarOpen"
+          @click="handleLogout"
+          title="Esci"
+          class="mt-2 w-full flex justify-center p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-lg transition-colors"
+        >
+          <LogOut :size="15" />
+        </button>
       </div>
     </aside>
 
@@ -210,6 +220,7 @@ import {
   Clock,
   Info,
   LayoutDashboard,
+  LogOut,
   Menu,
   Moon,
   Plane,
@@ -218,18 +229,31 @@ import {
   Thermometer,
   User,
 } from "lucide-vue-next";
-import { computed, ref } from "vue";
-import { useRoute } from "vue-router";
-import { ROLES, useAppStore } from "./stores/useAppStore";
+import { computed, ref, watch } from "vue";
+import { useRoute, useRouter } from "vue-router";
+import { useAppStore } from "./stores/useAppStore";
+import { NAV_ROLES, useAuthStore } from "./stores/useAuthStore";
 import { useThemeStore } from "./stores/useThemeStore";
 
 const appStore = useAppStore();
+const authStore = useAuthStore();
 const themeStore = useThemeStore();
 const route = useRoute();
+const router = useRouter();
 const showNotifications = ref(false);
-const roles = Object.values(ROLES);
 
-const navItems = [
+const isLoginPage = computed(() => route.path === "/login");
+
+// Keep appStore.currentRole in sync with auth role (for components that read it)
+watch(
+  () => authStore.userRole,
+  (role) => {
+    if (role) appStore.currentRole = role;
+  },
+  { immediate: true },
+);
+
+const ALL_NAV_ITEMS = [
   { to: "/", icon: LayoutDashboard, label: "Dashboard" },
   { to: "/planning", icon: Calendar, label: "Pianificazione" },
   { to: "/employee", icon: User, label: "Area Dipendente" },
@@ -238,9 +262,15 @@ const navItems = [
   { to: "/contract-hours", icon: Clock, label: "Ore Contrattuali" },
 ];
 
+const allowedNavItems = computed(() =>
+  ALL_NAV_ITEMS.filter((item) =>
+    NAV_ROLES[item.to]?.includes(authStore.userRole),
+  ),
+);
+
 const currentPageTitle = computed(() => {
-  const item = navItems.find((n) => n.to === route.path);
-  return item ? item.label : "AirOps";
+  const item = ALL_NAV_ITEMS.find((n) => n.to === route.path);
+  return item ? item.label : "Nome Azienda";
 });
 
 const today = computed(() =>
@@ -251,6 +281,11 @@ const today = computed(() =>
     year: "numeric",
   }),
 );
+
+function handleLogout() {
+  authStore.logout();
+  router.push("/login");
+}
 
 const NOTIF_ICONS = {
   swap: RefreshCw,
