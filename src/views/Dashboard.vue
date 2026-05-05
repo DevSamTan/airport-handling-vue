@@ -119,7 +119,7 @@
     </div>
 
     <!-- Weekly stats table -->
-    <div
+    <!-- <div
       class="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-5"
     >
       <h2 class="text-sm font-semibold text-slate-900 dark:text-white mb-4">
@@ -145,18 +145,17 @@
               :key="row.id"
               class="border-b border-slate-200 dark:border-slate-700/50 hover:bg-slate-100 dark:hover:bg-slate-700/30 transition-colors"
             >
-              <td class="py-2.5 pr-4">
-                <div class="flex items-center gap-2">
-                  <div
-                    class="w-6 h-6 rounded-full bg-blue-600 flex items-center justify-center text-[10px] font-bold text-white"
-                  >
-                    {{ row.initials }}
-                  </div>
-                  <span class="text-slate-900 dark:text-white font-medium">{{
-                    row.name
-                  }}</span>
+              <td class="py-2.5 pr-4"></td>
+              <div class="flex items-center gap-2">
+                <div
+                  class="w-6 h-6 rounded-full bg-blue-600 flex items-center justify-center text-[10px] font-bold text-white"
+                >
+                  {{ row.initials }}
                 </div>
-              </td>
+                <span class="text-slate-900 dark:text-white font-medium">{{
+                  row.name
+                }}</span>
+              </div>
               <td class="py-2.5 pr-4 text-slate-600 dark:text-slate-400">
                 {{ row.dept }}
               </td>
@@ -189,7 +188,7 @@
           </tbody>
         </table>
       </div>
-    </div>
+    </div> -->
   </div>
 </template>
 
@@ -214,7 +213,7 @@ const kpis = computed(() => [
   {
     label: "Operatori in turno oggi",
     value: "6",
-    delta: "▲ 2 rispetto a ieri",
+    delta: "+2 rispetto a ieri",
     deltaPositive: true,
     icon: Users,
     iconBg: "bg-blue-500/20",
@@ -241,7 +240,7 @@ const kpis = computed(() => [
   {
     label: "Scoperture questa sett.",
     value: "2",
-    delta: "▼ 1 rispetto a settimana scorsa",
+    delta: "-1 rispetto a settimana scorsa",
     deltaPositive: true,
     icon: AlertTriangle,
     iconBg: "bg-orange-500/20",

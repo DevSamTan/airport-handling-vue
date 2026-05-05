@@ -123,7 +123,9 @@
                 <div
                   :class="[
                     'text-base font-bold mt-0.5',
-                    isToday(day.date) ? 'text-blue-400' : 'text-slate-900 dark:text-white',
+                    isToday(day.date)
+                      ? 'text-blue-400'
+                      : 'text-slate-900 dark:text-white',
                   ]"
                 >
                   {{ day.dayNum }}
@@ -140,7 +142,9 @@
               :key="member.id"
               class="border-t border-slate-100 dark:border-slate-700/50 hover:bg-slate-50 dark:hover:bg-slate-700/20 transition-colors"
             >
-              <td class="px-4 py-2 border-r border-slate-200 dark:border-slate-700">
+              <td
+                class="px-4 py-2 border-r border-slate-200 dark:border-slate-700"
+              >
                 <div class="flex items-center gap-2">
                   <div
                     class="w-7 h-7 rounded-full bg-blue-600 flex items-center justify-center text-[10px] font-bold text-white shrink-0"
@@ -148,7 +152,9 @@
                     {{ member.initials }}
                   </div>
                   <div>
-                    <div class="font-medium text-slate-900 dark:text-white text-xs">
+                    <div
+                      class="font-medium text-slate-900 dark:text-white text-xs"
+                    >
                       {{ member.name }}
                     </div>
                     <div class="text-slate-500 text-[10px]">
@@ -166,24 +172,40 @@
                 <div class="space-y-0.5">
                   <!-- One pill per shift type -->
                   <div
-                    v-for="(shiftType, idx) in shiftStore.getShifts(member.id, day.date)"
+                    v-for="(shiftType, idx) in shiftStore.getShifts(
+                      member.id,
+                      day.date,
+                    )"
                     :key="shiftType + idx"
                     :class="[
                       'group relative flex items-center justify-between rounded px-1.5 py-1 cursor-pointer transition-opacity',
                       SHIFT_COLORS[shiftType],
-                      isPasteTarget(member.id, day.date) && idx === 0 &&
+                      isPasteTarget(member.id, day.date) &&
+                        idx === 0 &&
                         'ring-2 ring-blue-400 ring-offset-1 ring-offset-white dark:ring-offset-slate-800',
                     ]"
                     @click.stop="openEdit(member, day.date, shiftType)"
-                    @contextmenu.prevent.stop="openCtxMenu($event, member, day.date, shiftType)"
+                    @contextmenu.prevent.stop="
+                      openCtxMenu($event, member, day.date, shiftType)
+                    "
                     title="Click: modifica · Click destro: opzioni"
                   >
                     <div>
-                      <div class="font-bold text-[10px]">{{ SHIFT_TYPES[shiftType].abbr }}</div>
-                      <div class="text-[9px] opacity-80 leading-tight">{{ SHIFT_TYPES[shiftType].hours }}</div>
+                      <div class="font-bold text-[10px]">
+                        {{ SHIFT_TYPES[shiftType].abbr }}
+                      </div>
+                      <div class="text-[9px] opacity-80 leading-tight">
+                        {{ SHIFT_TYPES[shiftType].hours }}
+                      </div>
                     </div>
                     <button
-                      @click.stop="shiftStore.removeShiftItem(member.id, day.date, shiftType)"
+                      @click.stop="
+                        shiftStore.removeShiftItem(
+                          member.id,
+                          day.date,
+                          shiftType,
+                        )
+                      "
                       class="opacity-0 group-hover:opacity-60 hover:!opacity-100 text-current shrink-0 ml-1 transition-opacity"
                       title="Rimuovi questo turno"
                     >
@@ -193,9 +215,13 @@
 
                   <!-- Empty cell -->
                   <button
-                    v-if="shiftStore.getShifts(member.id, day.date).length === 0"
+                    v-if="
+                      shiftStore.getShifts(member.id, day.date).length === 0
+                    "
                     @click.stop="openEdit(member, day.date)"
-                    @contextmenu.prevent.stop="openCtxMenu($event, member, day.date)"
+                    @contextmenu.prevent.stop="
+                      openCtxMenu($event, member, day.date)
+                    "
                     :class="[
                       'w-full h-11 border border-dashed rounded transition-all flex items-center justify-center',
                       clipboard
@@ -248,7 +274,9 @@
             </tr>
 
             <!-- Daily totals -->
-            <tr class="border-t-2 border-slate-200 dark:border-slate-600 bg-slate-100 dark:bg-slate-900/40">
+            <tr
+              class="border-t-2 border-slate-200 dark:border-slate-600 bg-slate-100 dark:bg-slate-900/40"
+            >
               <td
                 class="px-4 py-2 text-xs font-semibold text-slate-600 dark:text-slate-400 border-r border-slate-200 dark:border-slate-700"
               >
@@ -262,7 +290,9 @@
                 <span
                   :class="[
                     'text-xs font-bold',
-                    dayOp(day.date) < 3 ? 'text-red-500 dark:text-red-400' : 'text-slate-700 dark:text-slate-300',
+                    dayOp(day.date) < 3
+                      ? 'text-red-500 dark:text-red-400'
+                      : 'text-slate-700 dark:text-slate-300',
                   ]"
                 >
                   {{ dayOp(day.date) }}
@@ -382,10 +412,16 @@
         <div
           class="px-6 py-4 border-b border-slate-100 dark:border-slate-700 flex items-center justify-between"
         >
-          <h3 class="text-sm font-semibold text-slate-900 dark:text-white flex items-center gap-2">
-            <Upload :size="16" class="text-emerald-500" /> Anteprima Importazione CSV
+          <h3
+            class="text-sm font-semibold text-slate-900 dark:text-white flex items-center gap-2"
+          >
+            <Upload :size="16" class="text-emerald-500" /> Anteprima
+            Importazione CSV
           </h3>
-          <button @click="importPreview.open = false" class="text-slate-400 hover:text-slate-700 dark:hover:text-white">
+          <button
+            @click="importPreview.open = false"
+            class="text-slate-400 hover:text-slate-700 dark:hover:text-white"
+          >
             <X :size="20" />
           </button>
         </div>
@@ -393,7 +429,9 @@
         <div class="px-6 py-4 space-y-4">
           <!-- Start date picker -->
           <div>
-            <label class="text-xs text-slate-500 dark:text-slate-400 block mb-1">Data di inizio (prima colonna del CSV)</label>
+            <label class="text-xs text-slate-500 dark:text-slate-400 block mb-1"
+              >Data di inizio (prima colonna del CSV)</label
+            >
             <input
               type="date"
               v-model="importPreview.startDate"
@@ -404,41 +442,77 @@
 
           <!-- Stats -->
           <div class="grid grid-cols-3 gap-3">
-            <div class="bg-slate-50 dark:bg-slate-700/40 rounded-xl p-3 text-center">
-              <p class="text-slate-500 dark:text-slate-400 text-[10px] mb-1">Operatori</p>
-              <p class="text-xl font-bold text-slate-900 dark:text-white">{{ importPreview.rows.length }}</p>
+            <div
+              class="bg-slate-50 dark:bg-slate-700/40 rounded-xl p-3 text-center"
+            >
+              <p class="text-slate-500 dark:text-slate-400 text-[10px] mb-1">
+                Operatori
+              </p>
+              <p class="text-xl font-bold text-slate-900 dark:text-white">
+                {{ importPreview.rows.length }}
+              </p>
             </div>
-            <div class="bg-slate-50 dark:bg-slate-700/40 rounded-xl p-3 text-center">
-              <p class="text-slate-500 dark:text-slate-400 text-[10px] mb-1">Turni totali</p>
-              <p class="text-xl font-bold text-emerald-600 dark:text-emerald-400">{{ importPreview.totalShifts }}</p>
+            <div
+              class="bg-slate-50 dark:bg-slate-700/40 rounded-xl p-3 text-center"
+            >
+              <p class="text-slate-500 dark:text-slate-400 text-[10px] mb-1">
+                Turni totali
+              </p>
+              <p
+                class="text-xl font-bold text-emerald-600 dark:text-emerald-400"
+              >
+                {{ importPreview.totalShifts }}
+              </p>
             </div>
-            <div class="bg-slate-50 dark:bg-slate-700/40 rounded-xl p-3 text-center">
-              <p class="text-slate-500 dark:text-slate-400 text-[10px] mb-1">Periodo</p>
-              <p class="text-[10px] font-semibold text-slate-700 dark:text-slate-300 leading-tight mt-1">{{ importPreview.dateRange }}</p>
+            <div
+              class="bg-slate-50 dark:bg-slate-700/40 rounded-xl p-3 text-center"
+            >
+              <p class="text-slate-500 dark:text-slate-400 text-[10px] mb-1">
+                Periodo
+              </p>
+              <p
+                class="text-[10px] font-semibold text-slate-700 dark:text-slate-300 leading-tight mt-1"
+              >
+                {{ importPreview.dateRange }}
+              </p>
             </div>
           </div>
 
           <!-- Employee list -->
           <div v-if="importPreview.rows.length">
-            <p class="text-xs text-slate-500 dark:text-slate-400 mb-2">Operatori trovati:</p>
+            <p class="text-xs text-slate-500 dark:text-slate-400 mb-2">
+              Operatori trovati:
+            </p>
             <div class="max-h-48 overflow-y-auto space-y-1 pr-1">
               <div
                 v-for="row in importPreview.rows"
                 :key="row.name"
                 class="flex items-center justify-between px-3 py-1.5 bg-slate-50 dark:bg-slate-700/40 rounded-lg"
               >
-                <span class="text-xs text-slate-900 dark:text-white font-medium">{{ row.name }}</span>
-                <span class="text-[10px] text-slate-500 dark:text-slate-400 font-mono">{{ Object.keys(row.shifts).length }} turni</span>
+                <span
+                  class="text-xs text-slate-900 dark:text-white font-medium"
+                  >{{ row.name }}</span
+                >
+                <span
+                  class="text-[10px] text-slate-500 dark:text-slate-400 font-mono"
+                  >{{ Object.keys(row.shifts).length }} turni</span
+                >
               </div>
             </div>
           </div>
 
-          <div v-else class="text-center py-4 text-xs text-slate-400 dark:text-slate-500">
-            Nessun operatore rilevato. Controlla la data di inizio o il formato del file.
+          <div
+            v-else
+            class="text-center py-4 text-xs text-slate-400 dark:text-slate-500"
+          >
+            Nessun operatore rilevato. Controlla la data di inizio o il formato
+            del file.
           </div>
         </div>
 
-        <div class="px-6 py-4 border-t border-slate-100 dark:border-slate-700 flex gap-2 justify-end">
+        <div
+          class="px-6 py-4 border-t border-slate-100 dark:border-slate-700 flex gap-2 justify-end"
+        >
           <button
             @click="importPreview.open = false"
             class="px-4 py-2 text-sm text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition-colors"
@@ -450,7 +524,8 @@
             :disabled="!importPreview.rows.length"
             class="px-4 py-2 text-sm bg-emerald-600 hover:bg-emerald-500 disabled:opacity-40 disabled:cursor-not-allowed text-white rounded-lg transition-colors font-medium flex items-center gap-1.5"
           >
-            <Upload :size="14" /> Importa {{ importPreview.rows.length }} operatori
+            <Upload :size="14" /> Importa
+            {{ importPreview.rows.length }} operatori
           </button>
         </div>
       </div>
@@ -468,7 +543,9 @@
         <div
           class="px-6 py-4 border-b border-slate-100 dark:border-slate-700 flex items-center justify-between"
         >
-          <h3 class="text-sm font-semibold text-slate-900 dark:text-white">{{ modal.originalType ? 'Modifica Turno' : 'Aggiungi Turno' }}</h3>
+          <h3 class="text-sm font-semibold text-slate-900 dark:text-white">
+            {{ modal.originalType ? "Modifica Turno" : "Aggiungi Turno" }}
+          </h3>
           <button
             @click="modal.open = false"
             class="text-slate-400 hover:text-slate-700 dark:hover:text-white"
@@ -490,7 +567,9 @@
             </p>
           </div>
           <div>
-            <label class="text-xs text-slate-500 dark:text-slate-400 block mb-2">Tipo turno</label>
+            <label class="text-xs text-slate-500 dark:text-slate-400 block mb-2"
+              >Tipo turno</label
+            >
             <div class="grid grid-cols-2 gap-2">
               <button
                 v-for="(type, key) in SHIFT_TYPES"
@@ -503,16 +582,24 @@
                     : 'border-slate-200 dark:border-slate-600 hover:border-slate-400 dark:hover:border-slate-500 bg-slate-50 dark:bg-slate-700/50',
                 ]"
               >
-                <div class="text-xs font-bold text-slate-900 dark:text-white">{{ type.abbr }}</div>
-                <div class="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5">
+                <div class="text-xs font-bold text-slate-900 dark:text-white">
+                  {{ type.abbr }}
+                </div>
+                <div
+                  class="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5"
+                >
                   {{ type.label }}
                 </div>
-                <div class="text-[10px] text-slate-400 dark:text-slate-500">{{ type.hours }}</div>
+                <div class="text-[10px] text-slate-400 dark:text-slate-500">
+                  {{ type.hours }}
+                </div>
               </button>
             </div>
           </div>
         </div>
-        <div class="px-6 py-4 border-t border-slate-100 dark:border-slate-700 flex gap-2 justify-end">
+        <div
+          class="px-6 py-4 border-t border-slate-100 dark:border-slate-700 flex gap-2 justify-end"
+        >
           <button
             v-if="modal.originalType"
             @click="removeShift"
@@ -554,29 +641,33 @@ import {
     X,
 } from "lucide-vue-next";
 import { computed, reactive, ref } from "vue";
+import { useRequestStore } from "../stores/useRequestStore";
 import {
     DEPARTMENTS,
     SHIFT_COLORS,
     SHIFT_TYPES,
     useShiftStore,
 } from "../stores/useShiftStore";
-import { useRequestStore } from "../stores/useRequestStore";
 
 const shiftStore = useShiftStore();
-const reqStore   = useRequestStore();
+const reqStore = useRequestStore();
 const departments = DEPARTMENTS;
 const deptFilter = ref("");
 
 function hasVacationConflict(staffId, date) {
-  const iso = (date instanceof Date ? date : new Date(date)).toISOString().slice(0, 10);
-  const hasShifts = shiftStore.getShifts(staffId, date).some(t => !['R', 'F', 'MAL', 'INF', 'PER'].includes(t));
+  const iso = (date instanceof Date ? date : new Date(date))
+    .toISOString()
+    .slice(0, 10);
+  const hasShifts = shiftStore
+    .getShifts(staffId, date)
+    .some((t) => !["R", "F", "MAL", "INF", "PER"].includes(t));
   return hasShifts && reqStore.hasApprovedVacation(staffId, iso);
 }
 
-// ── Clipboard ──────────────────────────────────────────────────────────────
+// ########## Clipboard ######################################################################
 const clipboard = ref(null); // stores shift type key, e.g. 'M'
 
-// ── Context menu ───────────────────────────────────────────────────────────
+// ########## Context menu ##################################################─
 const ctxMenu = reactive({
   open: false,
   x: 0,
@@ -589,7 +680,8 @@ const ctxMenu = reactive({
 function openCtxMenu(event, member, date, shiftType = null) {
   const shifts = shiftStore.getShifts(member.id, date);
   const existing = shiftType ?? (shifts.length > 0 ? shifts[0] : null);
-  const menuW = 200, menuH = 160;
+  const menuW = 200,
+    menuH = 160;
   const x = Math.min(event.clientX, window.innerWidth - menuW - 8);
   const y = Math.min(event.clientY, window.innerHeight - menuH - 8);
   ctxMenu.open = true;
@@ -623,7 +715,11 @@ function ctxEdit() {
 
 function ctxRemove() {
   if (ctxMenu.existingShift) {
-    shiftStore.removeShiftItem(ctxMenu.staff.id, ctxMenu.date, ctxMenu.existingShift);
+    shiftStore.removeShiftItem(
+      ctxMenu.staff.id,
+      ctxMenu.date,
+      ctxMenu.existingShift,
+    );
   } else {
     shiftStore.setShift(ctxMenu.staff.id, ctxMenu.date, null);
   }
@@ -633,10 +729,10 @@ function ctxRemove() {
 function isPasteTarget(staffId, date) {
   if (!clipboard.value) return false;
   const existing = shiftStore.getShifts(staffId, date);
-  return existing.length > 0 && !existing.every(t => t === clipboard.value);
+  return existing.length > 0 && !existing.every((t) => t === clipboard.value);
 }
 
-// ── Week navigation ────────────────────────────────────────────────────────
+// ########## Week navigation ########################################
 const currentWeekStart = ref(new Date("2026-04-27"));
 
 function getMonday(d) {
@@ -705,12 +801,14 @@ function weeklyH(staffId) {
 }
 
 function dayOp(date) {
-  return shiftStore.staff.filter(s =>
-    shiftStore.getShifts(s.id, date).some(t => !["R", "F", "MAL", "INF", "PER"].includes(t))
+  return shiftStore.staff.filter((s) =>
+    shiftStore
+      .getShifts(s.id, date)
+      .some((t) => !["R", "F", "MAL", "INF", "PER"].includes(t)),
   ).length;
 }
 
-// ── Modal (edit / assign) ──────────────────────────────────────────────────
+// ########## Modal (edit / assign) ##########
 const modal = reactive({
   open: false,
   staff: null,
@@ -727,7 +825,11 @@ const modal = reactive({
 function openEdit(member, date, shiftType = undefined) {
   modal.staff = member;
   modal.date = date;
-  modal.dateLabel = date.toLocaleDateString("it-IT", { weekday: "long", day: "numeric", month: "long" });
+  modal.dateLabel = date.toLocaleDateString("it-IT", {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+  });
   if (shiftType === undefined) {
     const existing = shiftStore.getShifts(member.id, date);
     modal.originalType = existing.length > 0 ? existing[0] : null;
@@ -756,7 +858,7 @@ function removeShift() {
   modal.open = false;
 }
 
-// ── CSV Import ─────────────────────────────────────────────────────────────
+// ########## CSV Import ############################################################─
 const csvInput = ref(null);
 
 const importPreview = reactive({
@@ -851,7 +953,10 @@ function parseCsvShifts(text, startDateStr) {
 }
 
 function refreshPreview() {
-  importPreview.rows = parseCsvShifts(importPreview.rawText, importPreview.startDate);
+  importPreview.rows = parseCsvShifts(
+    importPreview.rawText,
+    importPreview.startDate,
+  );
   importPreview.totalShifts = importPreview.rows.reduce(
     (sum, r) => sum + Object.keys(r.shifts).length,
     0,
