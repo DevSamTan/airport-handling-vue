@@ -197,11 +197,11 @@
 
 <script setup>
 import {
-    AlertTriangle,
-    ArrowLeftRight,
-    Clock,
-    Thermometer,
-    Users,
+  AlertTriangle,
+  ArrowLeftRight,
+  Clock,
+  Thermometer,
+  Users,
 } from "lucide-vue-next";
 import { computed } from "vue";
 import { useRequestStore } from "../stores/useRequestStore";
@@ -278,8 +278,10 @@ const timeSlots = [
 ];
 
 function staffingLevel(count) {
-  if (count >= 5) return "bg-emerald-500/20 text-emerald-700 dark:text-emerald-300";
-  if (count >= 3) return "bg-yellow-500/20 text-yellow-700 dark:text-yellow-300";
+  if (count >= 5)
+    return "bg-emerald-500/20 text-emerald-700 dark:text-emerald-300";
+  if (count >= 3)
+    return "bg-yellow-500/20 text-yellow-700 dark:text-yellow-300";
   return "bg-red-500/20 text-red-700 dark:text-red-300";
 }
 
