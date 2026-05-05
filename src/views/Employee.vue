@@ -7,7 +7,7 @@
       <p class="text-blue-100 text-sm">Turno di Oggi – {{ todayLabel }}</p>
       <template v-if="todayShifts.length">
         <h2 class="text-3xl font-bold mt-1">
-          {{ SHIFT_TYPES[todayShifts[0]].hours }}
+          {{ SHIFT_TYPES[todayShifts[0]]?.hours ?? '—' }}
         </h2>
         <div class="mt-3 flex flex-wrap items-center gap-2">
           <span
@@ -15,10 +15,10 @@
             :key="t"
             class="bg-blue-500/50 px-3 py-1 rounded-full text-sm font-medium"
           >
-            {{ SHIFT_TYPES[t].label }}
+            {{ SHIFT_TYPES[t]?.label ?? t }}
           </span>
           <span class="bg-white/20 px-3 py-1 rounded-full text-sm">
-            {{ todayShifts.reduce((s, t) => s + SHIFT_TYPES[t].duration, 0) }}h
+            {{ todayShifts.reduce((s, t) => s + (SHIFT_TYPES[t]?.duration ?? 0), 0) }}h
             – Full-time 40h/sett
           </span>
         </div>
@@ -136,7 +136,7 @@
               v-if="day.shifts.length"
               class="text-[9px] mt-0.5 leading-tight"
             >
-              {{ day.shifts.map((t) => SHIFT_TYPES[t].abbr).join("+") }}
+              {{ day.shifts.map((t) => SHIFT_TYPES[t]?.abbr ?? t).join("+") }}
             </div>
             <div
               v-else-if="day.hasVacation"
@@ -538,10 +538,10 @@
                     : 'border-slate-200 dark:border-slate-600 hover:border-slate-300 dark:hover:border-slate-500 bg-slate-50 dark:bg-slate-700/40',
                 ]"
               >
-                <div :class="['w-2.5 h-2.5 rounded-full shrink-0', SHIFT_COLORS[t].split(' ')[0].replace('/20','')]"></div>
+                <div :class="['w-2.5 h-2.5 rounded-full shrink-0', (SHIFT_COLORS[t] ?? '').split(' ')[0].replace('/20','')]"></div>
                 <div class="flex-1">
-                  <span class="font-semibold text-slate-900 dark:text-white">{{ SHIFT_TYPES[t].abbr }}</span>
-                  <span class="text-slate-500 dark:text-slate-400 ml-2 text-xs">{{ SHIFT_TYPES[t].label }} · {{ SHIFT_TYPES[t].hours }}</span>
+                  <span class="font-semibold text-slate-900 dark:text-white">{{ SHIFT_TYPES[t]?.abbr ?? t }}</span>
+                  <span class="text-slate-500 dark:text-slate-400 ml-2 text-xs">{{ SHIFT_TYPES[t]?.label }} · {{ SHIFT_TYPES[t]?.hours }}</span>
                 </div>
                 <div v-if="swapForm.fromShift === t" class="w-4 h-4 rounded-full bg-blue-500 flex items-center justify-center shrink-0">
                   <svg viewBox="0 0 12 12" class="w-2.5 h-2.5 text-white fill-current"><path d="M2 6l3 3 5-5"/></svg>
@@ -553,7 +553,7 @@
             <div v-else class="flex items-center gap-2 p-3 bg-red-500/10 border border-red-500/30 rounded-lg">
               <AlertTriangle :size="15" class="text-red-500 shrink-0" />
               <p class="text-xs text-red-700 dark:text-red-400">
-                <span v-if="swapDateUserShifts.length">Hai {{ swapDateUserShifts.map(t => SHIFT_TYPES[t]?.abbr).join(', ') }} in questa data — non è cambiabile.</span>
+                <span v-if="swapDateUserShifts.length">Hai {{ swapDateUserShifts.map(t => SHIFT_TYPES[t]?.abbr).join(', ') }} in questa data — non è cambiabile (solo riposo, malattia o infortunio).</span>
                 <span v-else>Non hai turni assegnati in questa data.</span>
               </p>
             </div>
@@ -604,7 +604,7 @@
                   v-for="t in swapDateColleagueWorkingShifts"
                   :key="t"
                   :class="['text-[10px] font-bold px-2 py-0.5 rounded', SHIFT_COLORS[t]]"
-                >{{ SHIFT_TYPES[t].abbr }} · {{ SHIFT_TYPES[t].hours }}</span>
+                >{{ SHIFT_TYPES[t]?.abbr ?? t }} · {{ SHIFT_TYPES[t]?.hours }}</span>
               </div>
               <p v-else class="text-[10px] text-slate-400 dark:text-slate-500 italic">Nessun turno lavorativo assegnato</p>
             </div>
@@ -646,12 +646,12 @@
           >
             <p class="text-[10px] text-blue-500 dark:text-blue-400 font-semibold mb-2 uppercase tracking-wide">Riepilogo richiesta</p>
             <div class="flex items-center gap-3 text-sm">
-              <span :class="['px-2 py-1 rounded font-bold text-xs', SHIFT_COLORS[swapForm.fromShift]]">
-                {{ SHIFT_TYPES[swapForm.fromShift].abbr }}
+              <span :class="['px-2 py-1 rounded font-bold text-xs', SHIFT_COLORS[swapForm.fromShift] ?? 'bg-slate-200 text-slate-600']">
+                {{ SHIFT_TYPES[swapForm.fromShift]?.abbr ?? swapForm.fromShift }}
               </span>
               <ArrowLeftRight :size="16" class="text-blue-400 shrink-0" />
-              <span :class="['px-2 py-1 rounded font-bold text-xs', SHIFT_COLORS[swapForm.toShift]]">
-                {{ SHIFT_TYPES[swapForm.toShift].abbr }}
+              <span :class="['px-2 py-1 rounded font-bold text-xs', SHIFT_COLORS[swapForm.toShift] ?? 'bg-slate-200 text-slate-600']">
+                {{ SHIFT_TYPES[swapForm.toShift]?.abbr ?? swapForm.toShift }}
               </span>
               <span class="text-xs text-slate-600 dark:text-slate-400">
                 {{ new Date(swapForm.date).toLocaleDateString('it-IT', { weekday:'short', day:'numeric', month:'short' }) }}
@@ -742,7 +742,15 @@ const vacationConflictToday = computed(
     reqStore.hasApprovedVacation(CURRENT_STAFF_ID, todayIso),
 );
 
-const currentWeekStart = ref(new Date("2026-04-27"));
+function getMonday(d) {
+  const date = new Date(d);
+  const day = date.getDay();
+  const diff = (day === 0 ? -6 : 1 - day);
+  date.setDate(date.getDate() + diff);
+  date.setHours(0, 0, 0, 0);
+  return date;
+}
+const currentWeekStart = ref(getMonday(today));
 function prevWeek() {
   currentWeekStart.value = new Date(
     currentWeekStart.value.getTime() - 7 * 86400000,
@@ -791,9 +799,10 @@ const sickForm = reactive({
   note: "",
   protocolNumber: "",
 });
-// Only actual working shifts are valid swap targets
+// Shift types that can be swapped (working shifts + ferie)
+const SWAPPABLE = ['M', 'P', 'N', 'L', 'S6', 'F'];
 const WORKING_SHIFT_TYPES = Object.fromEntries(
-  Object.entries(SHIFT_TYPES).filter(([k]) => ['M', 'P', 'N', 'L', 'S6'].includes(k))
+  Object.entries(SHIFT_TYPES).filter(([k]) => SWAPPABLE.includes(k))
 );
 
 const swapForm = reactive({
@@ -821,9 +830,9 @@ const swapDateUserShifts = computed(() => {
   if (!swapForm.date) return [];
   return shiftStore.getShifts(CURRENT_STAFF_ID, new Date(swapForm.date));
 });
-// Only the working ones (excludes R, F, MAL, INF, PER)
+// Only the swappable ones (working shifts + ferie, excludes R, MAL, INF, PER)
 const swapDateUserWorkingShifts = computed(() =>
-  swapDateUserShifts.value.filter(t => ['M', 'P', 'N', 'L', 'S6'].includes(t))
+  swapDateUserShifts.value.filter(t => SWAPPABLE.includes(t))
 );
 
 const swapColleague = computed(() =>
@@ -834,7 +843,7 @@ const swapDateColleagueShifts = computed(() => {
   return shiftStore.getShifts(swapColleague.value.id, new Date(swapForm.date));
 });
 const swapDateColleagueWorkingShifts = computed(() =>
-  swapDateColleagueShifts.value.filter(t => ['M', 'P', 'N', 'L', 'S6'].includes(t))
+  swapDateColleagueShifts.value.filter(t => SWAPPABLE.includes(t))
 );
 
 const swapDateIsPast = computed(() =>
@@ -857,7 +866,7 @@ const swapErrors = computed(() => {
   const e = [];
   if (!swapForm.date) { e.push('Seleziona una data'); return e; }
   if (swapDateUserWorkingShifts.value.length === 0)
-    e.push('Non hai turni lavorativi cambiabili in questa data');
+    e.push('Non hai turni cambiabili in questa data (riposo, malattia o infortunio non sono scambiabili)');
   if (!swapForm.fromShift) e.push('Seleziona quale turno vuoi cambiare');
   if (!swapForm.toShift)   e.push('Seleziona il turno proposto');
   if (swapForm.fromShift && swapForm.toShift && swapForm.fromShift === swapForm.toShift)
@@ -872,7 +881,7 @@ const swapCanSubmit = computed(() => swapErrors.value.length === 0);
 watch(() => swapForm.date, (newDate) => {
   if (!newDate) { swapForm.fromShift = ''; swapForm.toShift = ''; return; }
   const working = shiftStore.getShifts(CURRENT_STAFF_ID, new Date(newDate))
-    .filter(t => ['M', 'P', 'N', 'L', 'S6'].includes(t));
+    .filter(t => SWAPPABLE.includes(t));
   swapForm.fromShift = working[0] ?? '';
   swapForm.toShift = '';
 });
@@ -880,7 +889,7 @@ watch(() => swapForm.date, (newDate) => {
 // Auto-select first available toShift when fromShift changes
 watch(() => swapForm.fromShift, (from) => {
   if (!from) { swapForm.toShift = ''; return; }
-  const options = ['M', 'P', 'N', 'L', 'S6'].filter(t => t !== from);
+  const options = SWAPPABLE.filter(t => t !== from);
   if (!swapForm.toShift || swapForm.toShift === from) {
     swapForm.toShift = options[0] ?? '';
   }
@@ -963,7 +972,7 @@ const myRequests = computed(() => [
       icon: Umbrella,
       iconColor: "text-emerald-400",
       label: `Ferie – ${r.startDate} / ${r.endDate}`,
-      sub: r.reason || `${vacDays.value}gg richiesti`,
+      sub: r.reason || `${Math.max(1, Math.round((new Date(r.endDate) - new Date(r.startDate)) / 86400000) + 1)}gg richiesti`,
       status: r.status,
     })),
 ]);

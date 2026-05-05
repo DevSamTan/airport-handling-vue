@@ -37,8 +37,8 @@
             <span class="text-blue-300 font-medium">
               Copiato:
               <span class="font-bold"
-                >{{ SHIFT_TYPES[clipboard].abbr }} –
-                {{ SHIFT_TYPES[clipboard].label }}</span
+                >{{ SHIFT_TYPES[clipboard]?.abbr ?? clipboard }} –
+                {{ SHIFT_TYPES[clipboard]?.label }}</span
               >
             </span>
             <button
@@ -192,10 +192,10 @@
                   >
                     <div>
                       <div class="font-bold text-[10px]">
-                        {{ SHIFT_TYPES[shiftType].abbr }}
+                        {{ SHIFT_TYPES[shiftType]?.abbr ?? shiftType }}
                       </div>
                       <div class="text-[9px] opacity-80 leading-tight">
-                        {{ SHIFT_TYPES[shiftType].hours }}
+                        {{ SHIFT_TYPES[shiftType]?.hours ?? '—' }}
                       </div>
                     </div>
                     <button
@@ -326,8 +326,8 @@
               ]"
             ></div>
             <span class="text-[10px] text-slate-500 dark:text-slate-400"
-              >{{ SHIFT_TYPES[ctxMenu.existingShift].label }} ·
-              {{ SHIFT_TYPES[ctxMenu.existingShift].hours }}</span
+              >{{ SHIFT_TYPES[ctxMenu.existingShift]?.label ?? ctxMenu.existingShift }} ·
+              {{ SHIFT_TYPES[ctxMenu.existingShift]?.hours ?? '—' }}</span
             >
           </div>
         </div>
@@ -355,9 +355,9 @@
           <ClipboardPaste :size="14" class="text-blue-400" />
           <span>
             Incolla
-            <span class="font-bold">{{ SHIFT_TYPES[clipboard].abbr }}</span>
+            <span class="font-bold">{{ SHIFT_TYPES[clipboard]?.abbr ?? clipboard }}</span>
             <span class="text-blue-400/70">
-              – {{ SHIFT_TYPES[clipboard].label }}</span
+              – {{ SHIFT_TYPES[clipboard]?.label }}</span
             >
           </span>
           <kbd
@@ -733,8 +733,6 @@ function isPasteTarget(staffId, date) {
 }
 
 // ########## Week navigation ########################################
-const currentWeekStart = ref(new Date("2026-04-27"));
-
 function getMonday(d) {
   const date = new Date(d);
   const day = date.getDay();
@@ -743,6 +741,8 @@ function getMonday(d) {
   date.setHours(0, 0, 0, 0);
   return date;
 }
+
+const currentWeekStart = ref(getMonday(new Date()));
 
 function prevWeek() {
   currentWeekStart.value = new Date(
