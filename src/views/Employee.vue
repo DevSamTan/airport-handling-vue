@@ -482,87 +482,155 @@
     <div
       v-if="swapModal"
       class="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4"
-      @click.self="swapModal = false"
+      @click.self="closeSwapModal"
     >
       <div
-        class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 w-full max-w-md shadow-2xl"
+        class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 w-full max-w-md shadow-2xl max-h-[90vh] flex flex-col"
       >
-        <div
-          class="px-6 py-4 border-b border-slate-100 dark:border-slate-700 flex items-center justify-between"
-        >
+        <!-- Header -->
+        <div class="px-6 py-4 border-b border-slate-100 dark:border-slate-700 flex items-center justify-between shrink-0">
           <div class="flex items-center gap-2 text-slate-900 dark:text-white">
-            <ArrowLeftRight
-              :size="18"
-              class="text-blue-500 dark:text-blue-400"
-            />
+            <ArrowLeftRight :size="18" class="text-blue-500 dark:text-blue-400" />
             <h3 class="text-sm font-semibold">Richiesta Cambio Turno</h3>
           </div>
-          <button
-            @click="swapModal = false"
-            class="text-slate-400 hover:text-slate-700 dark:hover:text-white"
-          >
+          <button @click="closeSwapModal" class="text-slate-400 hover:text-slate-700 dark:hover:text-white">
             <X :size="20" />
           </button>
         </div>
-        <div class="px-6 py-4 space-y-4">
-          <div class="grid grid-cols-2 gap-3">
-            <div>
-              <label
-                class="text-xs text-slate-600 dark:text-slate-400 block mb-1"
-                >Data turno da cambiare</label
+
+        <!-- Body (scrollable) -->
+        <div class="px-6 py-4 space-y-4 overflow-y-auto">
+
+          <!-- 1. Date -->
+          <div>
+            <label class="text-xs text-slate-600 dark:text-slate-400 block mb-1">Data turno da cambiare <span class="text-red-500">*</span></label>
+            <input
+              type="date"
+              v-model="swapForm.date"
+              :min="todayIso"
+              :class="[
+                'w-full text-slate-900 dark:text-white text-sm px-3 py-2 rounded-lg border focus:outline-none transition-colors',
+                swapForm.date && swapDateUserWorkingShifts.length === 0
+                  ? 'bg-red-50 dark:bg-red-900/20 border-red-400 dark:border-red-500'
+                  : 'bg-white dark:bg-slate-700 border-slate-300 dark:border-slate-600 focus:border-blue-500'
+              ]"
+            />
+            <!-- Past date warning -->
+            <p v-if="swapDateIsPast" class="text-[11px] text-orange-600 dark:text-orange-400 mt-1 flex items-center gap-1">
+              <AlertTriangle :size="11" /> La data selezionata è già passata
+            </p>
+          </div>
+
+          <!-- 2. Your current shift on that date (auto-detected) -->
+          <div v-if="swapForm.date">
+            <label class="text-xs text-slate-600 dark:text-slate-400 block mb-1">Il tuo turno in quella data</label>
+
+            <!-- Has working shift(s) -->
+            <div v-if="swapDateUserWorkingShifts.length" class="space-y-1.5">
+              <button
+                v-for="t in swapDateUserWorkingShifts"
+                :key="t"
+                @click="swapForm.fromShift = t"
+                :class="[
+                  'w-full flex items-center gap-3 px-3 py-2 rounded-lg border-2 text-left transition-all text-sm',
+                  swapForm.fromShift === t
+                    ? 'border-blue-500 bg-blue-500/10 dark:bg-blue-500/20'
+                    : 'border-slate-200 dark:border-slate-600 hover:border-slate-300 dark:hover:border-slate-500 bg-slate-50 dark:bg-slate-700/40',
+                ]"
               >
-              <input
-                type="date"
-                v-model="swapForm.date"
-                class="w-full bg-white dark:bg-slate-700 text-slate-900 dark:text-white text-sm px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-600 focus:outline-none focus:border-blue-500"
-              />
+                <div :class="['w-2.5 h-2.5 rounded-full shrink-0', SHIFT_COLORS[t].split(' ')[0].replace('/20','')]"></div>
+                <div class="flex-1">
+                  <span class="font-semibold text-slate-900 dark:text-white">{{ SHIFT_TYPES[t].abbr }}</span>
+                  <span class="text-slate-500 dark:text-slate-400 ml-2 text-xs">{{ SHIFT_TYPES[t].label }} · {{ SHIFT_TYPES[t].hours }}</span>
+                </div>
+                <div v-if="swapForm.fromShift === t" class="w-4 h-4 rounded-full bg-blue-500 flex items-center justify-center shrink-0">
+                  <svg viewBox="0 0 12 12" class="w-2.5 h-2.5 text-white fill-current"><path d="M2 6l3 3 5-5"/></svg>
+                </div>
+              </button>
             </div>
-            <div>
-              <label
-                class="text-xs text-slate-600 dark:text-slate-400 block mb-1"
-                >Turno attuale</label
-              >
-              <select
-                v-model="swapForm.fromShift"
-                class="w-full bg-white dark:bg-slate-700 text-slate-900 dark:text-white text-sm px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-600 focus:outline-none focus:border-blue-500"
-              >
-                <option v-for="(t, k) in SHIFT_TYPES" :key="k" :value="k">
-                  {{ t.abbr }} – {{ t.label }}
-                </option>
-              </select>
+
+            <!-- No working shift on that day -->
+            <div v-else class="flex items-center gap-2 p-3 bg-red-500/10 border border-red-500/30 rounded-lg">
+              <AlertTriangle :size="15" class="text-red-500 shrink-0" />
+              <p class="text-xs text-red-700 dark:text-red-400">
+                <span v-if="swapDateUserShifts.length">Hai {{ swapDateUserShifts.map(t => SHIFT_TYPES[t]?.abbr).join(', ') }} in questa data — non è cambiabile.</span>
+                <span v-else>Non hai turni assegnati in questa data.</span>
+              </p>
             </div>
           </div>
-          <div>
-            <label class="text-xs text-slate-600 dark:text-slate-400 block mb-1"
-              >Turno proposto</label
-            >
-            <select
-              v-model="swapForm.toShift"
-              class="w-full bg-white dark:bg-slate-700 text-slate-900 dark:text-white text-sm px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-600 focus:outline-none focus:border-blue-500"
-            >
-              <option v-for="(t, k) in SHIFT_TYPES" :key="k" :value="k">
-                {{ t.abbr }} – {{ t.label }}
-              </option>
-            </select>
+
+          <!-- 3. Proposed shift -->
+          <div v-if="swapForm.fromShift">
+            <label class="text-xs text-slate-600 dark:text-slate-400 block mb-1">Turno proposto <span class="text-red-500">*</span></label>
+            <div class="grid grid-cols-3 gap-1.5">
+              <button
+                v-for="(t, k) in WORKING_SHIFT_TYPES"
+                :key="k"
+                @click="swapForm.toShift = k"
+                :disabled="k === swapForm.fromShift"
+                :class="[
+                  'flex flex-col items-center py-2 px-1 rounded-lg border-2 text-center transition-all',
+                  swapForm.toShift === k
+                    ? 'border-blue-500 bg-blue-500/10'
+                    : k === swapForm.fromShift
+                      ? 'border-slate-100 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 opacity-30 cursor-not-allowed'
+                      : 'border-slate-200 dark:border-slate-600 hover:border-slate-300 dark:hover:border-slate-500 bg-slate-50 dark:bg-slate-700/40 cursor-pointer',
+                ]"
+              >
+                <span class="text-xs font-bold text-slate-900 dark:text-white">{{ t.abbr }}</span>
+                <span class="text-[10px] text-slate-500 dark:text-slate-400 leading-tight">{{ t.hours }}</span>
+              </button>
+            </div>
           </div>
-          <div>
-            <label class="text-xs text-slate-600 dark:text-slate-400 block mb-1"
-              >Collega coinvolto (se scambio)</label
-            >
+
+          <!-- 4. Colleague (optional) -->
+          <div v-if="swapForm.fromShift">
+            <label class="text-xs text-slate-600 dark:text-slate-400 block mb-1">Collega coinvolto (opzionale)</label>
             <select
               v-model="swapForm.colleague"
               class="w-full bg-white dark:bg-slate-700 text-slate-900 dark:text-white text-sm px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-600 focus:outline-none focus:border-blue-500"
             >
-              <option value="">Nessuno (spostamento singolo)</option>
+              <option value="">— Nessuno (spostamento singolo)</option>
               <option v-for="s in colleagues" :key="s.id" :value="s.id">
-                {{ s.name }}
+                {{ s.name }} ({{ s.dept }})
               </option>
             </select>
+
+            <!-- Colleague shift info -->
+            <div v-if="swapColleague && swapForm.date" class="mt-2 p-2.5 bg-slate-50 dark:bg-slate-700/40 rounded-lg">
+              <p class="text-[10px] text-slate-500 dark:text-slate-400 mb-1">Turno di {{ swapColleague.name }} in quella data:</p>
+              <div v-if="swapDateColleagueWorkingShifts.length" class="flex flex-wrap gap-1">
+                <span
+                  v-for="t in swapDateColleagueWorkingShifts"
+                  :key="t"
+                  :class="['text-[10px] font-bold px-2 py-0.5 rounded', SHIFT_COLORS[t]]"
+                >{{ SHIFT_TYPES[t].abbr }} · {{ SHIFT_TYPES[t].hours }}</span>
+              </div>
+              <p v-else class="text-[10px] text-slate-400 dark:text-slate-500 italic">Nessun turno lavorativo assegnato</p>
+            </div>
+
+            <!-- Colleague conflict warnings -->
+            <div v-if="swapColleague && swapForm.date" class="mt-1.5 space-y-1">
+              <div
+                v-if="swapDateColleagueWorkingShifts.length === 0"
+                class="flex items-center gap-2 p-2 bg-orange-500/10 border border-orange-500/20 rounded-lg"
+              >
+                <AlertTriangle :size="12" class="text-orange-500 shrink-0" />
+                <p class="text-[11px] text-orange-700 dark:text-orange-400">{{ swapColleague.name }} non ha un turno cambiabile in questa data.</p>
+              </div>
+              <div
+                v-if="colleagueHasVacation"
+                class="flex items-center gap-2 p-2 bg-orange-500/10 border border-orange-500/20 rounded-lg"
+              >
+                <AlertTriangle :size="12" class="text-orange-500 shrink-0" />
+                <p class="text-[11px] text-orange-700 dark:text-orange-400">{{ swapColleague.name }} ha ferie approvate in questa data.</p>
+              </div>
+            </div>
           </div>
-          <div>
-            <label class="text-xs text-slate-600 dark:text-slate-400 block mb-1"
-              >Motivazione (opzionale)</label
-            >
+
+          <!-- 5. Reason -->
+          <div v-if="swapForm.fromShift">
+            <label class="text-xs text-slate-600 dark:text-slate-400 block mb-1">Motivazione (opzionale)</label>
             <textarea
               v-model="swapForm.reason"
               rows="2"
@@ -570,20 +638,55 @@
               placeholder="Motivo della richiesta..."
             ></textarea>
           </div>
+
+          <!-- 6. Preview card -->
+          <div
+            v-if="swapForm.fromShift && swapForm.toShift && swapForm.date && swapErrors.length === 0"
+            class="p-3 bg-blue-500/10 border border-blue-500/30 rounded-xl"
+          >
+            <p class="text-[10px] text-blue-500 dark:text-blue-400 font-semibold mb-2 uppercase tracking-wide">Riepilogo richiesta</p>
+            <div class="flex items-center gap-3 text-sm">
+              <span :class="['px-2 py-1 rounded font-bold text-xs', SHIFT_COLORS[swapForm.fromShift]]">
+                {{ SHIFT_TYPES[swapForm.fromShift].abbr }}
+              </span>
+              <ArrowLeftRight :size="16" class="text-blue-400 shrink-0" />
+              <span :class="['px-2 py-1 rounded font-bold text-xs', SHIFT_COLORS[swapForm.toShift]]">
+                {{ SHIFT_TYPES[swapForm.toShift].abbr }}
+              </span>
+              <span class="text-xs text-slate-600 dark:text-slate-400">
+                {{ new Date(swapForm.date).toLocaleDateString('it-IT', { weekday:'short', day:'numeric', month:'short' }) }}
+                <span v-if="swapColleague"> · con {{ swapColleague.name }}</span>
+              </span>
+            </div>
+          </div>
+
+          <!-- 7. Errors (blocking) -->
+          <div v-if="swapErrors.length" class="space-y-1">
+            <div
+              v-for="err in swapErrors"
+              :key="err"
+              class="flex items-center gap-2 p-2.5 bg-red-500/10 border border-red-500/30 rounded-lg"
+            >
+              <AlertTriangle :size="13" class="text-red-500 shrink-0" />
+              <p class="text-xs text-red-700 dark:text-red-400">{{ err }}</p>
+            </div>
+          </div>
         </div>
-        <div
-          class="px-6 py-4 border-t border-slate-100 dark:border-slate-700 flex gap-2 justify-end"
-        >
+
+        <!-- Footer -->
+        <div class="px-6 py-4 border-t border-slate-100 dark:border-slate-700 flex gap-2 justify-end shrink-0">
           <button
-            @click="swapModal = false"
+            @click="closeSwapModal"
             class="px-4 py-2 text-sm text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition-colors"
           >
             Annulla
           </button>
           <button
             @click="submitSwap"
-            class="px-4 py-2 text-sm bg-blue-600 hover:bg-blue-500 text-white rounded-lg font-medium transition-colors"
+            :disabled="!swapCanSubmit"
+            class="px-4 py-2 text-sm bg-blue-600 hover:bg-blue-500 disabled:opacity-40 disabled:cursor-not-allowed text-white rounded-lg font-medium transition-colors flex items-center gap-2"
           >
+            <ArrowLeftRight :size="15" />
             Invia richiesta
           </button>
         </div>
@@ -602,7 +705,7 @@ import {
   Umbrella,
   X,
 } from "lucide-vue-next";
-import { computed, reactive, ref } from "vue";
+import { computed, reactive, ref, watch } from "vue";
 import { useRequestStore } from "../stores/useRequestStore";
 import {
   SHIFT_COLORS,
@@ -688,10 +791,15 @@ const sickForm = reactive({
   note: "",
   protocolNumber: "",
 });
+// Only actual working shifts are valid swap targets
+const WORKING_SHIFT_TYPES = Object.fromEntries(
+  Object.entries(SHIFT_TYPES).filter(([k]) => ['M', 'P', 'N', 'L', 'S6'].includes(k))
+);
+
 const swapForm = reactive({
   date: "",
-  fromShift: "M",
-  toShift: "P",
+  fromShift: "",
+  toShift: "",
   colleague: "",
   reason: "",
 });
@@ -706,6 +814,82 @@ const vacDays = computed(() => {
     ) + 1,
   );
 });
+
+// ── Swap validation ──────────────────────────────────────────────────────
+// All shifts the current user has on the chosen swap date
+const swapDateUserShifts = computed(() => {
+  if (!swapForm.date) return [];
+  return shiftStore.getShifts(CURRENT_STAFF_ID, new Date(swapForm.date));
+});
+// Only the working ones (excludes R, F, MAL, INF, PER)
+const swapDateUserWorkingShifts = computed(() =>
+  swapDateUserShifts.value.filter(t => ['M', 'P', 'N', 'L', 'S6'].includes(t))
+);
+
+const swapColleague = computed(() =>
+  swapForm.colleague ? shiftStore.staff.find(s => s.id === Number(swapForm.colleague)) : null
+);
+const swapDateColleagueShifts = computed(() => {
+  if (!swapForm.date || !swapColleague.value) return [];
+  return shiftStore.getShifts(swapColleague.value.id, new Date(swapForm.date));
+});
+const swapDateColleagueWorkingShifts = computed(() =>
+  swapDateColleagueShifts.value.filter(t => ['M', 'P', 'N', 'L', 'S6'].includes(t))
+);
+
+const swapDateIsPast = computed(() =>
+  !!swapForm.date && new Date(swapForm.date) < today
+);
+const colleagueHasVacation = computed(() =>
+  !!swapColleague.value && !!swapForm.date &&
+  reqStore.hasApprovedVacation(swapColleague.value.id, swapForm.date)
+);
+const swapAlreadyExists = computed(() =>
+  reqStore.shiftSwaps.some(s =>
+    s.requesterId === CURRENT_STAFF_ID &&
+    s.date === swapForm.date &&
+    s.status === 'pending'
+  )
+);
+
+// Blocking errors
+const swapErrors = computed(() => {
+  const e = [];
+  if (!swapForm.date) { e.push('Seleziona una data'); return e; }
+  if (swapDateUserWorkingShifts.value.length === 0)
+    e.push('Non hai turni lavorativi cambiabili in questa data');
+  if (!swapForm.fromShift) e.push('Seleziona quale turno vuoi cambiare');
+  if (!swapForm.toShift)   e.push('Seleziona il turno proposto');
+  if (swapForm.fromShift && swapForm.toShift && swapForm.fromShift === swapForm.toShift)
+    e.push('Il turno proposto deve essere diverso da quello attuale');
+  if (swapAlreadyExists.value)
+    e.push('Hai già una richiesta di cambio in attesa per questa data');
+  return e;
+});
+const swapCanSubmit = computed(() => swapErrors.value.length === 0);
+
+// Auto-detect fromShift when date changes
+watch(() => swapForm.date, (newDate) => {
+  if (!newDate) { swapForm.fromShift = ''; swapForm.toShift = ''; return; }
+  const working = shiftStore.getShifts(CURRENT_STAFF_ID, new Date(newDate))
+    .filter(t => ['M', 'P', 'N', 'L', 'S6'].includes(t));
+  swapForm.fromShift = working[0] ?? '';
+  swapForm.toShift = '';
+});
+
+// Auto-select first available toShift when fromShift changes
+watch(() => swapForm.fromShift, (from) => {
+  if (!from) { swapForm.toShift = ''; return; }
+  const options = ['M', 'P', 'N', 'L', 'S6'].filter(t => t !== from);
+  if (!swapForm.toShift || swapForm.toShift === from) {
+    swapForm.toShift = options[0] ?? '';
+  }
+});
+
+function closeSwapModal() {
+  swapModal.value = false;
+  Object.assign(swapForm, { date: '', fromShift: '', toShift: '', colleague: '', reason: '' });
+}
 
 function submitSick() {
   reqStore.addSickLeave({
@@ -725,22 +909,19 @@ function submitSick() {
 }
 
 function submitSwap() {
-  const col = shiftStore.staff.find((s) => s.id === Number(swapForm.colleague));
+  if (!swapCanSubmit.value) return;
+  const col = swapColleague.value;
   reqStore.addShiftSwap({
     requester: "Marco Rossi",
     requesterId: CURRENT_STAFF_ID,
     colleague: col?.name || null,
     colleagueId: col?.id || null,
-    ...swapForm,
+    date: swapForm.date,
+    fromShift: swapForm.fromShift,
+    toShift: swapForm.toShift,
+    reason: swapForm.reason,
   });
-  swapModal.value = false;
-  Object.assign(swapForm, {
-    date: "",
-    fromShift: "M",
-    toShift: "P",
-    colleague: "",
-    reason: "",
-  });
+  closeSwapModal();
 }
 
 function submitVacation() {
