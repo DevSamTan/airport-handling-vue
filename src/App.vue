@@ -19,7 +19,7 @@
         <span
           v-if="appStore.sidebarOpen"
           class="font-bold text-slate-900 dark:text-white text-sm tracking-wide"
-          >AirOps</span
+          >Nome e Logo Aziendale</span
         >
       </div>
 
