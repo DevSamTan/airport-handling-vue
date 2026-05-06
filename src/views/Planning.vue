@@ -71,6 +71,32 @@
           class="hidden"
           @change="handleCsvFile"
         />
+
+        <button
+          @click="showCoverage = !showCoverage; selectedCovCell = null"
+          :class="[
+            'flex items-center gap-1.5 px-3 py-1.5 text-xs rounded-lg transition-colors font-medium',
+            showCoverage
+              ? 'bg-purple-600 hover:bg-purple-500 text-white'
+              : 'dark:bg-slate-700 bg-gray-200 dark:hover:bg-slate-600 hover:bg-gray-300 dark:text-white text-black',
+          ]"
+        >
+          <Users :size="14" /> Copertura
+        </button>
+
+        <button
+          @click="exportMonthToExcel"
+          :disabled="exporting"
+          class="flex items-center gap-1.5 px-3 py-1.5 bg-teal-600 hover:bg-teal-500 disabled:opacity-60 text-white text-xs rounded-lg transition-colors font-medium"
+          :title="`Esporta turni di ${new Date(currentWeekStart.getFullYear(), currentWeekStart.getMonth(), 1).toLocaleDateString('it-IT', { month: 'long', year: 'numeric' })}`"
+        >
+          <span
+            v-if="exporting"
+            class="w-3.5 h-3.5 border-2 border-white/40 border-t-white rounded-full animate-spin"
+          />
+          <FileDown v-else :size="14" />
+          Esporta Excel
+        </button>
       </div>
     </div>
 
@@ -95,6 +121,305 @@
         Click sinistro per modificare · Click destro per copiare/incollare
       </p>
     </div>
+
+    <!-- Coverage Panel -->
+    <Transition name="fade">
+      <div
+        v-if="showCoverage"
+        class="dark:bg-slate-800 bg-white rounded-xl border dark:border-slate-700 border-slate-200 overflow-hidden"
+        @click.stop
+      >
+        <!-- Header -->
+        <div
+          class="flex items-center gap-2 px-4 py-3 border-b dark:border-slate-700 border-slate-200"
+        >
+          <Users :size="15" class="text-purple-400 shrink-0" />
+          <span class="text-sm font-semibold dark:text-white text-slate-900"
+            >Copertura turni</span
+          >
+          <span class="text-xs dark:text-slate-500 text-slate-400"
+            >· clicca una cella per i disponibili</span
+          >
+        </div>
+
+        <!-- Coverage matrix -->
+        <div class="overflow-x-auto">
+          <table class="w-full min-w-[700px] text-xs border-collapse">
+            <thead>
+              <tr
+                class="dark:bg-slate-900/60 bg-gray-100 dark:text-slate-400 text-gray-600"
+              >
+                <th
+                  class="text-left px-4 py-2.5 font-medium w-28 border-r dark:border-slate-700 border-gray-300"
+                >
+                  Turno
+                </th>
+                <th
+                  v-for="day in weekDays"
+                  :key="day.iso"
+                  :class="[
+                    'px-2 py-2.5 text-center border-r dark:border-slate-700 border-slate-200 font-medium',
+                    isToday(day.date) && 'text-blue-400',
+                  ]"
+                >
+                  <div class="capitalize">{{ day.weekday }}</div>
+                  <div
+                    :class="[
+                      'font-bold',
+                      isToday(day.date)
+                        ? 'text-blue-400'
+                        : 'dark:text-white text-slate-900',
+                    ]"
+                  >
+                    {{ day.dayNum }}
+                  </div>
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr
+                v-for="row in coverageMatrix"
+                :key="row.shiftKey"
+                class="border-t dark:border-slate-700/50 border-slate-100"
+              >
+                <!-- Shift type label -->
+                <td
+                  class="px-4 py-2 border-r dark:border-slate-700 border-slate-200"
+                >
+                  <div
+                    :class="[
+                      'text-[10px] font-bold px-1.5 py-0.5 rounded inline-block',
+                      SHIFT_COLORS[row.shiftKey],
+                    ]"
+                  >
+                    {{ SHIFT_TYPES[row.shiftKey].abbr }}
+                  </div>
+                  <div class="text-[9px] dark:text-slate-500 text-slate-400 mt-0.5">
+                    {{ SHIFT_TYPES[row.shiftKey].hours }}
+                  </div>
+                </td>
+
+                <!-- Day cells -->
+                <td
+                  v-for="cell in row.days"
+                  :key="cell.day.iso"
+                  class="px-1 py-1 border-r dark:border-slate-700/50 border-slate-100"
+                >
+                  <button
+                    @click.stop="toggleCovCell(row.shiftKey, cell.day)"
+                    :class="[
+                      'w-full rounded-lg px-2 py-2 text-center transition-all',
+                      isCovCellSelected(row.shiftKey, cell.day)
+                        ? 'ring-2 ring-purple-500 dark:bg-purple-900/30 bg-purple-50'
+                        : 'dark:hover:bg-slate-700/40 hover:bg-slate-50',
+                    ]"
+                  >
+                    <div
+                      :class="[
+                        'text-sm font-bold',
+                        cell.assigned.length === 0
+                          ? 'text-red-500'
+                          : cell.assigned.length < 2
+                            ? 'text-yellow-500'
+                            : 'text-emerald-500',
+                      ]"
+                    >
+                      {{ cell.assigned.length }}
+                    </div>
+                    <div
+                      class="text-[9px] dark:text-slate-500 text-slate-400 leading-none"
+                    >
+                      ass.
+                    </div>
+                    <div class="text-[9px] mt-1">
+                      <span
+                        :class="
+                          cell.available.length > 0
+                            ? 'text-blue-400'
+                            : 'dark:text-slate-600 text-slate-400'
+                        "
+                        >{{ cell.available.length }} disp.</span
+                      >
+                    </div>
+                  </button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Detail drawer (expands when a cell is selected) -->
+        <Transition name="fade">
+          <div
+            v-if="covDetail"
+            class="border-t dark:border-slate-700 border-slate-200 px-4 py-4"
+          >
+            <!-- Detail header -->
+            <div class="flex items-center justify-between mb-3">
+              <div class="flex items-center gap-2 flex-wrap">
+                <div
+                  :class="[
+                    'text-[10px] font-bold px-2 py-0.5 rounded',
+                    SHIFT_COLORS[covDetail.shiftKey],
+                  ]"
+                >
+                  {{ SHIFT_TYPES[covDetail.shiftKey].label }}
+                </div>
+                <span
+                  class="text-xs font-semibold dark:text-white text-slate-900 capitalize"
+                  >{{ covDetail.dayLabel }}</span
+                >
+                <span class="text-xs dark:text-slate-500 text-slate-400"
+                  >· {{ SHIFT_TYPES[covDetail.shiftKey].hours }}</span
+                >
+              </div>
+              <button
+                @click.stop="selectedCovCell = null"
+                class="text-slate-400 hover:dark:text-white hover:text-slate-700 transition-colors"
+              >
+                <X :size="15" />
+              </button>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <!-- Assigned -->
+              <div>
+                <p
+                  class="text-[10px] font-semibold uppercase tracking-wide dark:text-slate-500 text-slate-400 mb-2"
+                >
+                  Assegnati ({{ covDetail.assigned.length }})
+                </p>
+                <div v-if="covDetail.assigned.length" class="space-y-1.5">
+                  <div
+                    v-for="m in covDetail.assigned"
+                    :key="m.id"
+                    class="flex items-center gap-2 px-2.5 py-1.5 rounded-lg dark:bg-slate-700/40 bg-slate-50"
+                  >
+                    <div
+                      class="w-6 h-6 rounded-full bg-emerald-600 flex items-center justify-center text-[9px] font-bold text-white shrink-0"
+                    >
+                      {{ m.initials }}
+                    </div>
+                    <div class="flex-1 min-w-0">
+                      <div
+                        class="text-xs font-medium dark:text-white text-slate-900 truncate"
+                      >
+                        {{ m.name }}
+                      </div>
+                      <div class="text-[9px] dark:text-slate-500 text-slate-400">
+                        {{ m.dept }}
+                      </div>
+                    </div>
+                    <div
+                      class="text-[9px] font-mono dark:text-slate-400 text-slate-500 shrink-0"
+                    >
+                      {{ m.weekH }}h / {{ m.contractHours }}h
+                    </div>
+                  </div>
+                </div>
+                <p
+                  v-else
+                  class="text-xs dark:text-slate-600 text-slate-400 italic"
+                >
+                  Nessuno assegnato
+                </p>
+              </div>
+
+              <!-- Available -->
+              <div>
+                <p
+                  class="text-[10px] font-semibold uppercase tracking-wide dark:text-slate-500 text-slate-400 mb-2"
+                >
+                  Disponibili ({{ covDetail.available.length }})
+                </p>
+                <div v-if="covDetail.available.length" class="space-y-1.5">
+                  <div
+                    v-for="(m, idx) in covDetail.available"
+                    :key="m.id"
+                    :class="[
+                      'flex items-center gap-2 px-2.5 py-2 rounded-lg group transition-all',
+                      idx === 0 && m.histCount > 0
+                        ? 'dark:bg-purple-900/25 bg-purple-50 border dark:border-purple-700/40 border-purple-200'
+                        : 'dark:bg-slate-700/40 bg-slate-50',
+                    ]"
+                  >
+                    <!-- Avatar -->
+                    <div
+                      :class="[
+                        'w-6 h-6 rounded-full flex items-center justify-center text-[9px] font-bold text-white shrink-0',
+                        idx === 0 && m.histCount > 0 ? 'bg-purple-600' : 'bg-blue-600',
+                      ]"
+                    >
+                      {{ m.initials }}
+                    </div>
+
+                    <div class="flex-1 min-w-0">
+                      <!-- Name row -->
+                      <div class="flex items-center gap-1.5 flex-wrap">
+                        <span class="text-xs font-medium dark:text-white text-slate-900 truncate">
+                          {{ m.name }}
+                        </span>
+                        <!-- Recommended badge: top scorer with actual history -->
+                        <span
+                          v-if="idx === 0 && m.histCount > 0"
+                          class="text-[8px] px-1.5 py-0.5 rounded-full bg-purple-600 text-white font-semibold shrink-0"
+                        >★ Consigliato</span>
+                        <span
+                          v-if="m.onRest"
+                          class="text-[8px] px-1 py-0.5 rounded dark:bg-slate-600 bg-slate-200 dark:text-slate-400 text-slate-500 shrink-0"
+                        >Riposo</span>
+                      </div>
+
+                      <!-- Sub-info row -->
+                      <div class="flex items-center gap-1.5 text-[9px] dark:text-slate-500 text-slate-400 mt-0.5 flex-wrap">
+                        <span>{{ m.dept }}</span>
+                        <span>·</span>
+                        <span :class="m.hourGap > 0 ? 'text-blue-400' : ''">
+                          {{ m.weekH }}h/{{ m.contractHours }}h
+                          <span v-if="m.hourGap > 0">(–{{ m.hourGap }}h)</span>
+                        </span>
+                        <span>·</span>
+                        <!-- History indicator -->
+                        <span
+                          :class="[
+                            'font-medium',
+                            m.histCount >= 3
+                              ? 'text-purple-400'
+                              : m.histCount >= 1
+                                ? 'dark:text-slate-400 text-slate-500'
+                                : 'dark:text-slate-600 text-slate-400',
+                          ]"
+                        >
+                          <span v-if="m.histCount > 0">storico: {{ m.histCount }}/{{ HIST_WEEKS }} sett.</span>
+                          <span v-else>nessuno storico</span>
+                        </span>
+                      </div>
+                    </div>
+
+                    <button
+                      @click.stop="quickAssign(m, covDetail.date, covDetail.shiftKey)"
+                      class="opacity-0 group-hover:opacity-100 shrink-0 text-[9px] font-semibold px-2 py-1 rounded bg-blue-600 hover:bg-blue-500 text-white transition-all"
+                    >
+                      Assegna
+                    </button>
+                  </div>
+                </div>
+                <p
+                  v-else
+                  class="text-xs dark:text-slate-600 text-slate-400 italic"
+                >
+                  {{
+                    covDetail.assigned.length > 0
+                      ? "Tutti gli operatori sono già assegnati o non disponibili"
+                      : "Nessun operatore disponibile per questo turno"
+                  }}
+                </p>
+              </div>
+            </div>
+          </div>
+        </Transition>
+      </div>
+    </Transition>
 
     <!-- Grid -->
     <div
@@ -626,6 +951,7 @@
 </template>
 
 <script setup>
+import ExcelJS from "exceljs";
 import {
     AlertTriangle,
     ChevronLeft,
@@ -633,11 +959,13 @@ import {
     Clipboard,
     ClipboardPaste,
     Copy,
+    FileDown,
     MousePointerClick,
     Pencil,
     Plus,
     Trash2,
     Upload,
+    Users,
     X,
 } from "lucide-vue-next";
 import { computed, reactive, ref } from "vue";
@@ -745,17 +1073,16 @@ function getMonday(d) {
 const currentWeekStart = ref(getMonday(new Date()));
 
 function prevWeek() {
-  currentWeekStart.value = new Date(
-    currentWeekStart.value.getTime() - 7 * 86400000,
-  );
+  currentWeekStart.value = new Date(currentWeekStart.value.getTime() - 7 * 86400000);
+  selectedCovCell.value = null;
 }
 function nextWeek() {
-  currentWeekStart.value = new Date(
-    currentWeekStart.value.getTime() + 7 * 86400000,
-  );
+  currentWeekStart.value = new Date(currentWeekStart.value.getTime() + 7 * 86400000);
+  selectedCovCell.value = null;
 }
 function goToday() {
   currentWeekStart.value = getMonday(new Date());
+  selectedCovCell.value = null;
 }
 
 const weekDays = computed(() =>
@@ -1007,6 +1334,268 @@ function confirmImport() {
     currentWeekStart.value = getMonday(new Date(allDates.sort()[0]));
   }
   importPreview.open = false;
+}
+
+// ########## Coverage panel ##################################################
+const showCoverage = ref(false);
+const selectedCovCell = ref(null); // { shiftKey, date, iso, dayLabel } | null
+
+const COVERAGE_SHIFTS = ["M", "P", "N", "L", "S6"];
+const _WORKING = ["M", "P", "N", "L", "S6"];
+const _BLOCKED = ["MAL", "INF"];
+const HIST_WEEKS = 8; // how many past weeks to analyse
+
+// Count how many times staffId worked shiftKey on the same day-of-week in the past HIST_WEEKS weeks
+function _histMatches(staffId, shiftKey, date) {
+  let count = 0;
+  for (let w = 1; w <= HIST_WEEKS; w++) {
+    const d = new Date(date);
+    d.setDate(d.getDate() - w * 7);
+    if (shiftStore.getShifts(staffId, d).includes(shiftKey)) count++;
+  }
+  return count;
+}
+
+function _covAssigned(shiftKey, date) {
+  return shiftStore.staff
+    .filter((m) => shiftStore.getShifts(m.id, date).includes(shiftKey))
+    .map((m) => ({ ...m, weekH: shiftStore.weeklyHours(m.id, currentWeekStart.value) }));
+}
+
+function _covAvailable(shiftKey, date) {
+  const iso = (date instanceof Date ? date : new Date(date)).toISOString().slice(0, 10);
+  return shiftStore.staff
+    .map((m) => {
+      const shifts     = shiftStore.getShifts(m.id, date);
+      const hasWork    = shifts.some((t) => _WORKING.includes(t));
+      const isBlocked  = shifts.some((t) => _BLOCKED.includes(t));
+      const onVacation = reqStore.hasApprovedVacation(m.id, iso);
+      const onRest     = shifts.some((t) => ["R", "F"].includes(t));
+      const weekH      = shiftStore.weeklyHours(m.id, currentWeekStart.value);
+      const hourGap    = m.contractHours - weekH;
+      const histCount  = _histMatches(m.id, shiftKey, date);
+      // Historical pattern weighted 3× over hour gap so regulars surface first
+      const score      = histCount * 3 + Math.max(0, hourGap);
+      return {
+        ...m,
+        weekH,
+        hourGap,
+        onRest,
+        histCount,
+        score,
+        available: !hasWork && !isBlocked && !onVacation,
+      };
+    })
+    .filter((m) => m.available)
+    .sort((a, b) => b.score - a.score);
+}
+
+const coverageMatrix = computed(() =>
+  COVERAGE_SHIFTS.map((shiftKey) => ({
+    shiftKey,
+    days: weekDays.value.map((day) => ({
+      day,
+      assigned:  _covAssigned(shiftKey, day.date),
+      available: _covAvailable(shiftKey, day.date),
+    })),
+  })),
+);
+
+const covDetail = computed(() => {
+  if (!selectedCovCell.value) return null;
+  const { shiftKey, date, dayLabel } = selectedCovCell.value;
+  return {
+    shiftKey,
+    date,
+    dayLabel,
+    assigned:  _covAssigned(shiftKey, date),
+    available: _covAvailable(shiftKey, date),
+  };
+});
+
+function toggleCovCell(shiftKey, day) {
+  const same =
+    selectedCovCell.value?.shiftKey === shiftKey &&
+    selectedCovCell.value?.iso === day.iso;
+  selectedCovCell.value = same
+    ? null
+    : {
+        shiftKey,
+        date: day.date,
+        iso: day.iso,
+        dayLabel: day.date.toLocaleDateString("it-IT", {
+          weekday: "long",
+          day: "numeric",
+          month: "long",
+        }),
+      };
+}
+
+function isCovCellSelected(shiftKey, day) {
+  return (
+    selectedCovCell.value?.shiftKey === shiftKey &&
+    selectedCovCell.value?.iso === day.iso
+  );
+}
+
+function quickAssign(member, date, shiftKey) {
+  shiftStore.addShift(member.id, date, shiftKey);
+  // Keep panel open so multiple people can be assigned
+}
+
+// ########## Excel export ####################################################
+
+// ARGB hex colours matching the app's shift palette (no # prefix, FF = fully opaque)
+const EXCEL_COLORS = {
+  M:   { bg: "FFDBEAFE", fg: "FF1D4ED8" },
+  P:   { bg: "FFFFEDD5", fg: "FFC2410C" },
+  N:   { bg: "FFE0E7FF", fg: "FF3730A3" },
+  L:   { bg: "FFF3E8FF", fg: "FF7E22CE" },
+  S6:  { bg: "FFCFFAFE", fg: "FF0E7490" },
+  R:   { bg: "FFF1F5F9", fg: "FF94A3B8" },
+  F:   { bg: "FFD1FAE5", fg: "FF065F46" },
+  MAL: { bg: "FFFEE2E2", fg: "FFB91C1C" },
+  INF: { bg: "FFFFE4E6", fg: "FF9F1239" },
+  PER: { bg: "FFFEF9C3", fg: "FF854D0E" },
+};
+
+const exporting = ref(false);
+
+async function exportMonthToExcel() {
+  exporting.value = true;
+  try {
+    const base  = currentWeekStart.value;
+    const year  = base.getFullYear();
+    const month = base.getMonth(); // 0-indexed
+    const days  = new Date(year, month + 1, 0).getDate();
+
+    const monthLabel = new Date(year, month, 1).toLocaleDateString("it-IT", {
+      month: "long", year: "numeric",
+    });
+
+    const wb = new ExcelJS.Workbook();
+    wb.creator = "AirOps";
+    wb.created = new Date();
+
+    const ws = wb.addWorksheet(`Turni ${monthLabel}`, {
+      views: [{ state: "frozen", xSplit: 2, ySplit: 1 }],
+    });
+
+    // ── Column definitions ──────────────────────────────────────────────────
+    const dayCols = Array.from({ length: days }, (_, i) => {
+      const d   = new Date(year, month, i + 1);
+      const dow = d.toLocaleDateString("it-IT", { weekday: "short" }).toUpperCase();
+      return {
+        header: `${dow} ${String(i + 1).padStart(2, "0")}`,
+        key: `d${i + 1}`,
+        width: 6,
+      };
+    });
+
+    ws.columns = [
+      { header: "Operatore",  key: "name",   width: 22 },
+      { header: "Reparto",    key: "dept",   width: 15 },
+      ...dayCols,
+      { header: "Ore tot.",   key: "total",  width: 9  },
+      { header: "Target",     key: "target", width: 9  },
+    ];
+
+    // ── Header row style ────────────────────────────────────────────────────
+    const headerRow = ws.getRow(1);
+    headerRow.height = 28;
+    headerRow.eachCell((cell) => {
+      cell.fill   = { type: "pattern", pattern: "solid", fgColor: { argb: "FF1E3A5F" } };
+      cell.font   = { bold: true, color: { argb: "FFFFFFFF" }, size: 8 };
+      cell.alignment = { horizontal: "center", vertical: "middle", wrapText: true };
+    });
+    // Left-align name and dept headers
+    headerRow.getCell("name").alignment = { horizontal: "left", vertical: "middle" };
+    headerRow.getCell("dept").alignment = { horizontal: "left", vertical: "middle" };
+
+    // Highlight weekend day headers lightly
+    for (let i = 1; i <= days; i++) {
+      const dow = new Date(year, month, i).getDay();
+      if (dow === 0 || dow === 6) {
+        const cell = headerRow.getCell(`d${i}`);
+        cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FF2D4A6F" } };
+      }
+    }
+
+    // ── Staff rows ──────────────────────────────────────────────────────────
+    const staffList = deptFilter.value
+      ? shiftStore.staff.filter((s) => s.dept === deptFilter.value)
+      : shiftStore.staff;
+
+    for (const member of staffList) {
+      const rowData = { name: member.name, dept: member.dept };
+      let totalHours = 0;
+
+      for (let d = 1; d <= days; d++) {
+        const date   = new Date(year, month, d);
+        const shifts = shiftStore.getShifts(member.id, date);
+        rowData[`d${d}`] = shifts.length ? shifts.join("+") : "";
+        totalHours += shifts.reduce((s, t) => s + (SHIFT_TYPES[t]?.duration ?? 0), 0);
+      }
+      rowData.total  = totalHours;
+      rowData.target = member.monthlyTarget;
+
+      const row = ws.addRow(rowData);
+      row.height = 16;
+
+      // Name / dept baseline style
+      row.getCell("name").font = { bold: true, size: 9 };
+      row.getCell("dept").font = { size: 9, color: { argb: "FF64748B" } };
+
+      // Total hours: green ✓ / orange overtime / red under target
+      const totalCell = row.getCell("total");
+      const over = totalHours > member.monthlyTarget;
+      const under = totalHours < member.monthlyTarget - 8;
+      totalCell.font = {
+        bold: true, size: 9,
+        color: { argb: over ? "FFF97316" : under ? "FFEF4444" : "FF10B981" },
+      };
+      totalCell.alignment = { horizontal: "center" };
+      row.getCell("target").font = { size: 9, color: { argb: "FF94A3B8" } };
+      row.getCell("target").alignment = { horizontal: "center" };
+
+      // Shift cell colours
+      for (let d = 1; d <= days; d++) {
+        const date   = new Date(year, month, d);
+        const shifts = shiftStore.getShifts(member.id, date);
+        const cell   = row.getCell(`d${d}`);
+        cell.font      = { size: 8 };
+        cell.alignment = { horizontal: "center", vertical: "middle" };
+
+        const dow = date.getDay();
+        if (shifts.length === 0) {
+          if (dow === 0 || dow === 6) {
+            cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FFF8FAFC" } };
+          }
+        } else {
+          const c = EXCEL_COLORS[shifts[0]];
+          if (c) {
+            cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: c.bg } };
+            cell.font = { size: 8, bold: true, color: { argb: c.fg } };
+          }
+        }
+      }
+    }
+
+    // ── Download ────────────────────────────────────────────────────────────
+    const buffer = await wb.xlsx.writeBuffer();
+    const blob   = new Blob([buffer], {
+      type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    });
+    const url = URL.createObjectURL(blob);
+    const a   = Object.assign(document.createElement("a"), {
+      href: url,
+      download: `turni_${monthLabel.replace(/ /g, "_")}.xlsx`,
+    });
+    a.click();
+    URL.revokeObjectURL(url);
+  } finally {
+    exporting.value = false;
+  }
 }
 </script>
 
